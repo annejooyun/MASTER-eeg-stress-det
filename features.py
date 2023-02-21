@@ -12,6 +12,7 @@ def time_series_features(data):
     n_features = v.NUM_CHANNELS * features_to_compute
 
     features = np.empty([data.shape[0], data.shape[1], n_features])
+    
     for i, trial in enumerate(data):
         for j, second in enumerate(trial):
             ptp_amp = mne_features.univariate.compute_ptp_amp(second)
