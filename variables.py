@@ -1,31 +1,12 @@
 DIR_RAW = 'Data/Raw_eeg'
-DIR_FILTERED = 'Data/ICA_data'
+DIR_ICA_FILTERED = 'Data/ICA_data'
 
-LABELS_PATH = 'Data/scales.xls'
+LABELS_PATH = 'Data/STAI_grading.xls'
 
+NUM_SUBJECTS = 28
 NUM_CLASSES = 2
-NUM_CHANNELS = 32
-SFREQ = 128
+NUM_CHANNELS = 8
+SFREQ = 250
 
-COLUMNS_TO_RENAME = {
-    'Subject No.': 'subject_no',
-    'Trial_1': 't1_math',
-    'Unnamed: 2': 't1_mirror',
-    'Unnamed: 3': 't1_stroop',
-    'Trial_2': 't2_math',
-    'Unnamed: 5': 't2_mirror',
-    'Unnamed: 6': 't2_stroop',
-    'Trial_3': 't3_math',
-    'Unnamed: 8': 't3_mirror',
-    'Unnamed: 9': 't3_stroop'
-}
 
-DATA_TYPES = ["raw", "filtered", "ica1", "ica2"]
-
-TEST_TYPES = ["Arithmetic", "Mirror", "Stroop"]
-
-TEST_TYPE_COLUMNS = {
-    'Arithmetic': ['t1_math', 't2_math', 't3_math'],
-    'Mirror': ['t1_mirror', 't2_mirror', 't3_mirror'],
-    'Stroop': ['t1_stroop', 't2_stroop', 't3_stroop']
-}
+DATA_TYPES = ["raw", "ica"]
