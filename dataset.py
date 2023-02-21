@@ -4,6 +4,74 @@ import numpy as np
 import pandas as pd
 import variables as v
 
+def read_eeg_data(dir, filename):
+    data_key = 'raw_eeg_data'
+    f = dir + filename
+    return scipy.io.loadmat(f)[data_key]
+
+def generate_all_recs():
+    """
+    Generate all possible recording names based on the number of participants, sessions, and runs.
+    Returns
+    -------
+    recs : list of str
+        List of all possible recording names in the format 'P00X_S00X_00X'.
+    """
+
+    recs = []
+    for i in range(1, v.NUM_SUBJECTS + 1):
+        subject = f'P{str(i).zfill(3)}'
+        for j in range(1, v.NUM_SESSIONS + 1):
+            session = f'S{str(j).zfill(3)}'
+            for k in range(1, v.NUM_RUNS + 1):
+                run = f'{str(k).zfill(3)}'
+                rec = f'{subject}_{session}_{run}'
+                recs.append(rec)
+    return recs
+
+
+def filter_valid_recs(recs):
+    """
+    This function returns the valid recordings from a list of recordings.
+    Parameters
+    ----------
+    recs : list
+        A list of recording names in the format 'P00X_S00X_00X'.
+    Returns
+    -------
+    valid_recs : list
+        A list of valid recordings in the format 'P00X_S00X_00X'.
+    """
+
+    dir = v.DIR_RAW
+    valid_recs = []
+    for rec in recs:
+        subject, session, run = rec.split('_')
+        f_name = os.path.join(
+            dir, f'sub-{subject}_ses-{session}_run-{run}.mat')
+        try:
+            data = read_eeg_data(f_name)
+            if data.n_times / data.info['sfreq'] >= 4.30 * 60:
+                valid_recs.append(rec)
+        except:
+            logging.error(f"Failed to read data for recording {rec}")
+            continue
+    return valid_recs
+
+
+def get_valid_recs():
+    """
+    This function returns a list of valid recording names based on the raw EEG data.
+    Returns
+    -------
+    valid_recs : list
+        A list of valid recording names in the format 'P00X_S00X_00X'.
+    """
+
+    recs = generate_all_recs()
+    valid_recs = filter_valid_recs(recs)
+    return valid_recs
+
 
 def load_dataset(data_type="ica"):
     '''
@@ -25,9 +93,20 @@ def load_dataset(data_type="ica"):
         print("No files matching data type found")
         return 0
 
-    dataset = np.empty((v.NUM_SUBJECTS, v.NUM_CHANNELS, v.SFREQ*5*60)) #5 minute recorings
+    #dataset = np.empty((v.NUM_SUBJECTS, v.NUM_CHANNELS, v.SFREQ*5*60)) #5 minute recorings
+    dataset = {}
+
+    for filename in os.listdir(dir):
+        f = os.path.join(dir, filename)
+        # checking if it is a file
+        if os.path.isfile(f):
+            print(f)
+        key = 
+        dataset
+
 
     counter = 0
+
     for filename in os.listdir(dir):
         if test_type not in filename:
             continue
