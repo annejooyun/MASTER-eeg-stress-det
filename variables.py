@@ -1,7 +1,5 @@
-DIR_RAW = 'Data/raw_data'
-DIR_FILTERED = 'Data/filtered_data'
-DIR_ICA_FILTERED = 'Data/ica_filtered_data'
-DIR_ICA_FILTERED_2 = 'Data/ica_filtered_data_2'
+DIR_RAW = 'Data/Raw_eeg'
+DIR_FILTERED = 'Data/ICA_data'
 
 LABELS_PATH = 'Data/scales.xls'
 
