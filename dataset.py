@@ -43,7 +43,7 @@ def generate_all_recs():
                 recs.append(rec)
     return recs
 
-def filter_valid_recs(recs, data_type='ica'):
+def filter_valid_recs(recs, data_type):
     """
     This function returns the valid recordings from a list of recordings.
     Parameters
@@ -77,7 +77,7 @@ def filter_valid_recs(recs, data_type='ica'):
             continue
     return valid_recs
 
-def get_valid_recs(data_type='ica'):
+def get_valid_recs(data_type):
     """
     This function returns a list of valid recording names based on the raw EEG data.
     Returns
@@ -90,7 +90,7 @@ def get_valid_recs(data_type='ica'):
     valid_recs = filter_valid_recs(recs, data_type)
     return valid_recs
 
-def extract_eeg_data(valid_recs, data_type="ica"):
+def extract_eeg_data(valid_recs, data_type):
     '''
     Loads data from the dataset.
     The data_type parameter specifies which of the datasets to load. Possible values
@@ -250,7 +250,7 @@ def extract_epochs(x_dict, y_dict, epoch_duration=3):
 
     for key, raw in x_dict.items():
         events = mne.make_fixed_length_events(
-            raw, duration=epoch_duration, overlap=overlap_duration)
+            raw, stop = 5*60, duration=epoch_duration, overlap=overlap_duration)
         epochs = mne.Epochs(raw, events, tmin=0,
                             tmax=epoch_duration, baseline=None, preload=True)
 
