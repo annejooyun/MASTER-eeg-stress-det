@@ -8,57 +8,6 @@ import logging
 
 
 
-def extract_eeg_data(valid_recs, data_type="raw"):
-    """
-    Extract EEG data from a list of valid recordings.
-    Parameters
-    ----------
-    valid_recs : list
-        List of valid recording names.
-    data_type : str, optional
-        Data type to be extracted, either "raw" or "filtered", by default "filtered"
-    Returns
-    -------
-    dict
-        Dictionary containing EEG data with keys as recording names.
-    """
-
-    if data_type == "raw":
-        dir = v.DIR_RAW
-    elif data_type == "filtered":
-        dir = v.DIR_FILTERED
-    else:
-        return
-    eeg_data = {}
-    for rec in valid_recs:
-        subject, session, run = rec.split('_')
-        f_name = os.path.join(
-            dir, f'sub-{subject}/ses-{session}/eeg/sub-{subject}_ses-{session}_task-Default_run-{run}_eeg.fif')
-        try:
-            data = read_eeg_data(f_name)
-        except:
-            logging.error(f"Failed to read data for recording {rec}")
-            data = None
-        key = f"{subject}_{session}_{run}"
-        eeg_data[key] = data
-    return eeg_data
-
-
-def read_eeg_data(filename):
-    """
-    Read EEG data from a file.
-    Parameters
-    ----------
-    filename : str
-        Path to the file to be read.
-    Returns
-    -------
-    data : instance of Raw object
-        The EEG data contained in the file.
-    """
-    return mne.io.read_raw_fif(filename)
-
-
 def compute_average_scores(path='Data/STAI_grading.xlsx'):
     """
     Compute the average scores of subjects from the raw scores.
@@ -140,26 +89,6 @@ def compute_score_labels(scores, low_cutoff, high_cutoff):
     return labels
 
 
-def filter_score_labels(valid_recs, labels):
-    """
-    Filter the labels dictionary to only contain labels for valid recordings.
-    Parameters
-    ----------
-    valid_recs : list
-        List of valid recordings.
-    labels : dict
-        Dictionary containing labels for all recordings.
-    Returns
-    -------
-    dict
-        Dictionary containing labels for valid recordings.
-    """
-    filtered_labels = {}
-    for rec in valid_recs:
-        filtered_labels[rec] = labels[rec]
-    return filtered_labels
-
-
 def get_labels(valid_recs, path='Data/STAI_grading.xlsx', low_cutoff=37, high_cutoff=45):
     """
     Get labels for valid recordings.
@@ -180,7 +109,7 @@ def get_labels(valid_recs, path='Data/STAI_grading.xlsx', low_cutoff=37, high_cu
     """
     scores = compute_average_scores(path)
     labels = compute_score_labels(scores, low_cutoff, high_cutoff)
-    return filter_score_labels(valid_recs, labels)
+    return labels
 
 
 def extract_epochs(x_dict, y_dict, epoch_duration=3):
