@@ -8,7 +8,6 @@ import mne
 from sklearn.model_selection import StratifiedKFold
 
 def read_eeg_data(data_type, filename):
-    print('im in')
     if data_type == 'raw':
         data_key = 'raw_eeg_data'
     elif data_type == 'ica':
@@ -16,7 +15,6 @@ def read_eeg_data(data_type, filename):
     else:
         print(f'No data with data_type = {data_type} found')
         return 0
-    print(filename)
     data = scipy.io.loadmat(filename)[data_key]
     info = mne.create_info(8, sfreq=v.SFREQ, ch_types= 'eeg', verbose=None)
     raw_arr = mne.io.RawArray(data, info)
@@ -45,8 +43,7 @@ def generate_all_recs():
                 recs.append(rec)
     return recs
 
-
-def filter_valid_recs(recs, data_type = 'ica'):
+def filter_valid_recs(recs, data_type='ica'):
     """
     This function returns the valid recordings from a list of recordings.
     Parameters
@@ -80,8 +77,7 @@ def filter_valid_recs(recs, data_type = 'ica'):
             continue
     return valid_recs
 
-
-def get_valid_recs():
+def get_valid_recs(data_type='ica'):
     """
     This function returns a list of valid recording names based on the raw EEG data.
     Returns
@@ -91,9 +87,8 @@ def get_valid_recs():
     """
 
     recs = generate_all_recs()
-    valid_recs = filter_valid_recs(recs)
+    valid_recs = filter_valid_recs(recs, data_type)
     return valid_recs
-
 
 def extract_eeg_data(valid_recs, data_type="ica"):
     '''
@@ -127,7 +122,6 @@ def extract_eeg_data(valid_recs, data_type="ica"):
         key = f"{subject}_{session}_{run}"
         eeg_data[key] = data
     return eeg_data
-
 
 def compute_average_scores(path='Data/STAI_grading.xlsx'):
     """
@@ -176,7 +170,6 @@ def compute_average_scores(path='Data/STAI_grading.xlsx'):
     scores_df.insert(0, columns[0], range(1, n_subjects+1))
     return scores_df
 
-
 def compute_score_labels(scores, low_cutoff, high_cutoff):
     """
     Convert scores to labels based on low and high cutoffs.
@@ -209,7 +202,6 @@ def compute_score_labels(scores, low_cutoff, high_cutoff):
             labels[key] = label
     return labels
 
-
 def get_labels(valid_recs, path='Data/STAI_grading.xlsx', low_cutoff=37, high_cutoff=45):
     """
     Get labels for valid recordings.
@@ -231,8 +223,6 @@ def get_labels(valid_recs, path='Data/STAI_grading.xlsx', low_cutoff=37, high_cu
     scores = compute_average_scores(path)
     labels = compute_score_labels(scores, low_cutoff, high_cutoff)
     return labels
-
-
 
 def extract_epochs(x_dict, y_dict, epoch_duration=3):
     """
@@ -269,7 +259,6 @@ def extract_epochs(x_dict, y_dict, epoch_duration=3):
             y_epochs[f"{key}_epoch{i}"] = y_dict[key]
 
     return x_epochs, y_epochs
-
 
 def kfold_split(x_epochs, y_epochs, n_splits=5, shuffle=True, random_state=None):
     """
