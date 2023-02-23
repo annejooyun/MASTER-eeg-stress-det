@@ -82,13 +82,10 @@ def hjorth_features(data):
             [n_trials, n_channels * features_per_channel])
         for j, key in enumerate(fold):
             trial = fold[key]
-            mobility_spect = mne_f.compute_hjorth_mobility_spect(
-                v.SFREQ, trial)
-            complexity_spect = mne_f.compute_hjorth_complexity_spect(
-                v.SFREQ, trial)
-            features[j] = np.concatenate([mobility_spect, complexity_spect])
-        features_for_fold = features_for_fold.reshape(
-            [n_trials, n_channels*features_per_channel])
+            mobility_spect = mne_f.compute_hjorth_mobility_spect(v.SFREQ, trial)
+            complexity_spect = mne_f.compute_hjorth_complexity_spect(v.SFREQ, trial)
+            features_for_fold[j] = np.concatenate([mobility_spect, complexity_spect])
+        features_for_fold = features_for_fold.reshape([n_trials, n_channels*features_per_channel])
         features.append(features_for_fold)
     return features
 

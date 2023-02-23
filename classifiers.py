@@ -41,14 +41,19 @@ def knn_classification(x_train, x_test, y_train, y_test):
         y_pred = knn_clf.predict(x_test_fold)
         y_true = y_test_fold
 
-        print(f'Results for fold {i+1}:')
-        print(metrics.classification_report(y_true, y_pred, output_dict=True))
+        print(f'\nResults for fold {i+1}:')
+        print(metrics.classification_report(y_true, y_pred))
         print(metrics.confusion_matrix(y_true, y_pred))
         
 
 
 
-def svm_classification(x_train, x_test, y_train, y_test, param_grid):
+def svm_classification(x_train, x_test, y_train, y_test):
+    param_grid = {
+        'C': [0.1, 1, 10, 100, 1000],
+        'kernel': ['rbf']
+    }
+
     n_splits = len(x_train)
 
     for i in range(n_splits):
@@ -69,7 +74,7 @@ def svm_classification(x_train, x_test, y_train, y_test, param_grid):
         y_pred = svm_clf.predict(x_test_fold)
         y_true = y_test_fold
 
-        print(f'Results for fold {i+1}:')
+        print(f'\nResults for fold {i+1}:')
         print(metrics.classification_report(y_true, y_pred))
         print(metrics.confusion_matrix(y_true, y_pred))
 
