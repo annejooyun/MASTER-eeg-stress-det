@@ -5,7 +5,7 @@ import pandas as pd
 from dataset import load_dataset, load_labels, convert_to_epochs, load_channels
 from features import time_series_features, hjorth_features
 from classifiers import KNN, SVM, NN
-import variables as v
+import utils.variables as v
 
 # This project is extended and a library called PyGAD is released to build the genetic algorithm.
 # PyGAD documentation: https://pygad.readthedocs.io

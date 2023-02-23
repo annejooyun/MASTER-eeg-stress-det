@@ -1,6 +1,6 @@
 import mne_features
 import numpy as np
-import variables as v
+import utils.variables as v
 
 def time_series_features(data):
     '''

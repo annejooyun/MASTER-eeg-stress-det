@@ -17,7 +17,7 @@ from keras_tuner.tuners import RandomSearch
 import keras_tuner
 
 from metrics import compute_metrics
-import variables as v
+import utils.variables as v
 
 
 def KNN(data, label):
