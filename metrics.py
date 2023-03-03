@@ -31,6 +31,6 @@ def compute_metrics(y_true, y_pred):
     else:  
         specificity = TN/(TN+FP)
     #print(f'\n Specificity: {specificity}')
-    performance = np.array([accuracy, sensitivity,specificity])*100
+    performance = np.array([accuracy, sensitivity, specificity])*100
     return np.round(performance, decimals=2)
     
