@@ -82,8 +82,7 @@ def segment_data(x_dict, y_dict, epoch_duration=3):
     y_epochs = {}
 
     for key, raw in x_dict.items():
-        events = mne.make_fixed_length_events(
-            raw, stop = 5*60, duration=epoch_duration, overlap=overlap_duration)
+        events = mne.make_fixed_length_events(raw, stop = 5*60, duration=epoch_duration, overlap=overlap_duration)
         epochs = mne.Epochs(raw, events, tmin=0, tmax=epoch_duration, baseline=None, preload=True)
 
         for i, epoch in enumerate(epochs):
@@ -91,6 +90,7 @@ def segment_data(x_dict, y_dict, epoch_duration=3):
             y_epochs[f"{key}_epoch{i}"] = y_dict[key]
 
     return x_epochs, y_epochs
+
 
 def kfold_split(x_epochs, y_epochs, n_splits=5, shuffle=True, random_state=None):
     """

@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import logging
+import math
 import utils.variables as v
 
 def load_pss_labels(filename, threshold):
@@ -78,7 +79,7 @@ def get_pss_labels(valid_recs, filename='Data/STAI_grading.xlsx', threshold=4):
 
 
 
-def compute_average_stai_scores(path='Data/STAI_grading.xlsx'):
+def compute_stai_y1_scores(path='Data/STAI_grading.xlsx'):
     """
     Compute the average scores of subjects from the raw scores.
     Parameters
@@ -92,9 +93,7 @@ def compute_average_stai_scores(path='Data/STAI_grading.xlsx'):
     """
 
     y1_text = 'Total score Y1'
-    y2_text = 'Total score Y2'
-    columns = ['SubjectNo', 'D1Y1', 'D2Y1', 'J1Y1', 'J2Y1', 'D1Y2',
-               'D2Y2', 'J1Y2', 'J2Y2', 'AVGD1', 'AVGD2', 'AVGJ1', 'AVGJ2']
+    columns = ['SubjectNo', 'D1Y1', 'D2Y1', 'J1Y1', 'J2Y1']
 
     try:
         xl = pd.ExcelFile(path)
@@ -111,19 +110,17 @@ def compute_average_stai_scores(path='Data/STAI_grading.xlsx'):
 
     for sheet_name in sheet_names:
         sheet = xl.parse(sheet_name)
-        y1_values = sheet.loc[sheet[sheet.columns[0]] == y1_text].iloc[:, 1:].to_numpy()[
-            0][::2]
-        y2_values = sheet.loc[sheet[sheet.columns[0]] == y2_text].iloc[:, 1:].to_numpy()[
-            0][::2]
-        avg_d1 = np.mean(np.hstack((y1_values[0], y2_values[0])))
-        avg_d2 = np.mean(np.hstack((y1_values[1], y2_values[1])))
-        avg_j1 = np.mean(np.hstack((y1_values[2], y2_values[2])))
-        avg_j2 = np.mean(np.hstack((y1_values[3], y2_values[3])))
-        scores.append(
-            np.hstack((y1_values, y2_values, avg_d1, avg_d2, avg_j1, avg_j2)))
+
+        y1_indices = sheet[sheet.columns[0]] == 'Total score Y1'
+        y1_scores = sheet.loc[y1_indices].values[0][1::2]
+
+        scores.append(np.concatenate([y1_scores]))
     scores_df = pd.DataFrame(scores, columns=columns[1:])
     scores_df.insert(0, columns[0], range(1, n_subjects+1))
+
+    print(scores_df)
     return scores_df
+
 
 def compute_stai_score_labels(scores, low_cutoff, high_cutoff):
     """
@@ -138,24 +135,34 @@ def compute_stai_score_labels(scores, low_cutoff, high_cutoff):
         The upper cutoff value. Default is 45.
     Returns
     -------
-    numpy.ndarray
-        An array with shape `(n_subjects, 4)` containing labels.
+    pd.DataFrame
+        Dataframe containing the scores (0, 1 or 2) for all subjects.
     """
-
     labels = {}
-    for i in range(scores.shape[0]):
+    for i in range(v.NUM_SUBJECTS):
         for j in range(v.NUM_SESSIONS*v.NUM_RUNS):
-
-            label = int(scores.iloc[i, j+8]
-                        in range(low_cutoff, high_cutoff+1))
-            if scores.iloc[i, j+8] > high_cutoff:
+            invalid_flag = False
+            if scores.iloc[i, j+1] == 0:
+                invalid_flag = True
+            elif scores.iloc[i,j+1] < low_cutoff:
+                label = 0
+            elif scores.iloc[i,j+1] > high_cutoff:
                 label = 2
-            subject = i + 1
-            session = j//v.NUM_RUNS + 1
-            run = j % v.NUM_RUNS + 1
-            key = f'P{str(subject).zfill(3)}_S{str(session).zfill(3)}_{str(run).zfill(3)}'
-            labels[key] = label
+            else:
+                label = 1
+
+            if not invalid_flag: 
+                subject = i + 1
+                session = math.ceil((j+1)/v.NUM_SESSIONS)
+                run = j%v.NUM_RUNS + 1
+
+                key = f'P{str(subject).zfill(3)}_S{str(session).zfill(3)}_{str(run).zfill(3)}'
+                labels[key] = label
+            else:
+                print("Invalid")
+    print(labels)
     return labels
+
 
 def get_stai_labels(valid_recs, path='Data/STAI_grading.xlsx', low_cutoff=37, high_cutoff=45):
     """
@@ -175,6 +182,6 @@ def get_stai_labels(valid_recs, path='Data/STAI_grading.xlsx', low_cutoff=37, hi
     dict
         Dictionary containing labels for valid recordings.
     """
-    scores = compute_average_stai_scores(path)
+    scores = compute_stai_y1_scores(path)
     labels = compute_stai_score_labels(scores, low_cutoff, high_cutoff)
     return labels
