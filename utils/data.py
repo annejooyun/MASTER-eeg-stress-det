@@ -2,12 +2,13 @@ import mne
 import os
 import numpy as np
 import scipy
-from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import StratifiedKFold, train_test_split
 import logging
 import utils.variables as v
 
 
-def read_eeg_data(data_type, filename):
+def read_eeg_data(data_type, filename, output_type):
+
     if data_type == 'raw':
         data_key = 'raw_eeg_data'
     elif data_type == 'ica':
@@ -15,19 +16,24 @@ def read_eeg_data(data_type, filename):
     else:
         print(f'No data with data_type = {data_type} found')
         return 0
+    
     data = scipy.io.loadmat(filename)[data_key]
-    print(data.shape)
     data = data[:,:75000] # 5 MIN * 60 SEK/MIN * 250 SAMPLES/SEK = 75 000 SAMPLES
-    print(data.shape)
-    info = mne.create_info(8, sfreq=v.SFREQ, ch_types= 'eeg', verbose=None)
-    raw_arr = mne.io.RawArray(data, info) 
-    mapping = {'0':'F4','1':'Fp2','2':'C3','3':'FC6','4':'O1','5':'Oz','6':'FT9','7':'T8'}
-    mne.rename_channels(raw_arr.info, mapping)
 
-    return raw_arr
+    if output_type == 'np':
+        return data
+    
+    elif output_type == 'mne':
+        info = mne.create_info(8, sfreq=v.SFREQ, ch_types= 'eeg', verbose=None)
+        raw_arr = mne.io.RawArray(data, info) 
+        mne.rename_channels(raw_arr.info, v.MAPPING)
+        return raw_arr
+    else:
+        print(f'No data with output_type = {output_type} found')
+        return 0
 
 
-def extract_eeg_data(valid_recs, data_type):
+def extract_eeg_data(valid_recs, data_type, output_type):
     '''
     Loads data from the dataset.
     The data_type parameter specifies which of the datasets to load. Possible values
@@ -49,16 +55,32 @@ def extract_eeg_data(valid_recs, data_type):
     eeg_data = {}
     for rec in valid_recs:
         subject, session, run = rec.split('_')
-        f_name = os.path.join(
-            dir, f'sub-{subject}_ses-{session}_run-{run}.mat')
+        f_name = os.path.join(dir, f'sub-{subject}_ses-{session}_run-{run}.mat')
         try:
-            data = read_eeg_data(data_type, f_name)
+            data = read_eeg_data(data_type, f_name, output_type)
         except:
             logging.error(f"2) Failed to read data for recording {rec}")
             data = None
+
         key = f"{subject}_{session}_{run}"
         eeg_data[key] = data
     return eeg_data
+
+
+def multi_to_binary_classification(x_dict, y_dict):
+    targ_val = 1
+    rem=[]
+    for i in y_dict.keys():
+        if y_dict[i] is targ_val:
+            rem.append(i)
+    # printing result
+    print("\nThe extracted keys : \n" + str(rem))
+
+    [y_dict.pop(key) for key in rem]
+    [x_dict.pop(key) for key in rem]
+    print(f"\nDictionary after removal of keys from y_dict: \n {y_dict.keys()}")
+    print(f"\nDictionary after removal of keys from x_dict: \n {x_dict.keys()}")
+    return x_dict, y_dict
 
 def segment_data(x_dict, y_dict, epoch_duration=3):
     """
@@ -142,3 +164,87 @@ def kfold_split(x_epochs, y_epochs, n_splits=5, shuffle=True, random_state=None)
     return train_epochs, test_epochs, train_labels, test_labels
 
 
+def split_dataset(x_dict, y_dict):
+    """
+    We split the dataset into training-, validation- and test-sets.
+
+    - Training consists of 60% of the participants
+    - Validation consists of 20% of the participants
+    - Test consists of 20% of the participants
+    """
+
+    keys_list = list(x_dict.keys())
+    labels_list = list(y_dict.values())
+
+    subject_list = []
+    for i in range(v.NUM_SUBJECTS+1):
+        subject = f'P{str(i).zfill(3)}'
+        for key in keys_list:
+            if subject in key and subject not in subject_list:
+                subject_list.append(subject)
+
+    #print(subject_list)
+
+    mean_labels_list = []
+    for i in range(v.NUM_SUBJECTS+1):
+        sum_label = 0
+        num_recordings = 0
+        subject = f'P{str(i).zfill(3)}'
+        for key, value in y_dict.items():
+            if subject in key:
+                sum_label += value
+                num_recordings += 1
+        if num_recordings == 0:
+            continue
+        else:
+            mean_label = sum_label/num_recordings
+            mean_labels_list.append(round(mean_label,0))
+
+    #print(mean_labels_list)
+
+    subjects, subjects_test, mean_labels, mean_labels_test = train_test_split(subject_list, mean_labels_list, test_size= 0.2, random_state=42, stratify = mean_labels_list)
+    subjects_train, subjects_val, mean_labels_train, mean_labels_val = train_test_split(subjects, mean_labels, test_size=0.25, random_state=42, stratify = mean_labels)
+
+    """
+    TEST PRINTS
+    ------------
+    print(subjects_train)
+    print(subjects_test)
+    print(subjects_val)
+
+    print(mean_labels_train)
+    print(mean_labels_test)
+    print(mean_labels_val)
+    """
+        
+    train_data_dict, train_labels_dict = reconstruct_dicts(subjects_train, x_dict, y_dict)
+    test_data_dict, test_labels_dict = reconstruct_dicts(subjects_test, x_dict, y_dict)
+    val_data_dict, val_labels_dict = reconstruct_dicts(subjects_val, x_dict, y_dict)
+
+    """
+    TEST PRINTS
+    ------------
+    print(train_data_dict)
+    print(train_labels_dict)
+    print(test_data_dict.keys())
+    print(val_data_dict.keys())
+    """
+    return train_data_dict, test_data_dict, val_data_dict, train_labels_dict, test_labels_dict, val_labels_dict
+
+
+def reconstruct_dicts(subjects_list, x_dict, y_dict):
+    data_dict = {}
+    labels_dict = {}
+
+    for subject in subjects_list:
+        # Reconstructing data dict
+        for key, val in x_dict.items():
+            if subject in key:
+                data_dict[key] = val
+
+        #Reconstructing labels dict
+        for key, val in y_dict.items():
+            if subject in key:
+                labels_dict[key] = val
+
+    return(data_dict, labels_dict)

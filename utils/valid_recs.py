@@ -23,7 +23,7 @@ def generate_all_recs():
                 recs.append(rec)
     return recs
 
-def filter_valid_recs(recs, data_type):
+def filter_valid_recs(recs, data_type, output_type):
     """
     This function returns the valid recordings from a list of recordings.
     Parameters
@@ -44,20 +44,27 @@ def filter_valid_recs(recs, data_type):
         return 0
 
     valid_recs = []
+
     for rec in recs:
         subject, session, run = rec.split('_')
-        f_name = os.path.join(
-            dir, f'sub-{subject}_ses-{session}_run-{run}.mat')
+        f_name = os.path.join(dir, f'sub-{subject}_ses-{session}_run-{run}.mat')
         try:
-            data = read_eeg_data(data_type, f_name)
-            if data.n_times / data.info['sfreq'] >= 4.30 * 60:
+            data = read_eeg_data(data_type, f_name, output_type)
+            if output_type == 'mne' and data.n_times / data.info['sfreq'] >= 4.30 * 60:
                 valid_recs.append(rec)
+            elif output_type == 'np' and data.shape[1] >= 4.3*60*250:
+                    valid_recs.append(rec)
+            else:
+                print(f'{f_name} not valid')
         except:
             logging.error(f"1) Failed to read data for recording {rec}")
             continue
+
+        
+
     return valid_recs
 
-def get_valid_recs(data_type):
+def get_valid_recs(data_type, output_type):
     """
     This function returns a list of valid recording names based on the raw EEG data.
     Returns
@@ -67,5 +74,7 @@ def get_valid_recs(data_type):
     """
 
     recs = generate_all_recs()
-    valid_recs = filter_valid_recs(recs, data_type)
+    print('Filtering out invalid recordings\n')
+    valid_recs = filter_valid_recs(recs, data_type, output_type)
+    print('Returning valid recordings\n')
     return valid_recs

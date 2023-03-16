@@ -159,7 +159,7 @@ def compute_stai_score_labels(scores, low_cutoff, high_cutoff):
                 key = f'P{str(subject).zfill(3)}_S{str(session).zfill(3)}_{str(run).zfill(3)}'
                 labels[key] = label
             else:
-                print("Invalid")
+                print("Invalid value for label")
     print(labels)
     return labels
 
