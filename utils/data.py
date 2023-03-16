@@ -174,7 +174,6 @@ def split_dataset(x_dict, y_dict):
     """
 
     keys_list = list(x_dict.keys())
-    labels_list = list(y_dict.values())
 
     subject_list = []
     for i in range(v.NUM_SUBJECTS+1):
@@ -182,8 +181,6 @@ def split_dataset(x_dict, y_dict):
         for key in keys_list:
             if subject in key and subject not in subject_list:
                 subject_list.append(subject)
-
-    #print(subject_list)
 
     mean_labels_list = []
     for i in range(v.NUM_SUBJECTS+1):
@@ -200,35 +197,13 @@ def split_dataset(x_dict, y_dict):
             mean_label = sum_label/num_recordings
             mean_labels_list.append(round(mean_label,0))
 
-    #print(mean_labels_list)
-
     subjects, subjects_test, mean_labels, mean_labels_test = train_test_split(subject_list, mean_labels_list, test_size= 0.2, random_state=42, stratify = mean_labels_list)
     subjects_train, subjects_val, mean_labels_train, mean_labels_val = train_test_split(subjects, mean_labels, test_size=0.25, random_state=42, stratify = mean_labels)
-
-    """
-    TEST PRINTS
-    ------------
-    print(subjects_train)
-    print(subjects_test)
-    print(subjects_val)
-
-    print(mean_labels_train)
-    print(mean_labels_test)
-    print(mean_labels_val)
-    """
         
     train_data_dict, train_labels_dict = reconstruct_dicts(subjects_train, x_dict, y_dict)
     test_data_dict, test_labels_dict = reconstruct_dicts(subjects_test, x_dict, y_dict)
     val_data_dict, val_labels_dict = reconstruct_dicts(subjects_val, x_dict, y_dict)
 
-    """
-    TEST PRINTS
-    ------------
-    print(train_data_dict)
-    print(train_labels_dict)
-    print(test_data_dict.keys())
-    print(val_data_dict.keys())
-    """
     return train_data_dict, test_data_dict, val_data_dict, train_labels_dict, test_labels_dict, val_labels_dict
 
 
