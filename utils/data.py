@@ -16,8 +16,11 @@ def read_eeg_data(data_type, filename):
         print(f'No data with data_type = {data_type} found')
         return 0
     data = scipy.io.loadmat(filename)[data_key]
+    print(data.shape)
+    data = data[:,:75000] # 5 MIN * 60 SEK/MIN * 250 SAMPLES/SEK = 75 000 SAMPLES
+    print(data.shape)
     info = mne.create_info(8, sfreq=v.SFREQ, ch_types= 'eeg', verbose=None)
-    raw_arr = mne.io.RawArray(data, info)
+    raw_arr = mne.io.RawArray(data, info) 
     mapping = {'0':'F4','1':'Fp2','2':'C3','3':'FC6','4':'O1','5':'Oz','6':'FT9','7':'T8'}
     mne.rename_channels(raw_arr.info, mapping)
 
