@@ -3,6 +3,31 @@ import mne_features.univariate as mne_f
 import numpy as np
 import utils.variables as v
 
+def differential_entropy(data):
+    '''
+    Computes the features variance, RMS and peak-to-peak amplitude using the package mne_features.
+    Args:
+        data (list of dicts): A list of dictionaries, where each dictionary contains EEG data for multiple trials. The keys in each dictionary represent trial IDs, and the values are numpy arrays of shape (n_channels, n_samples).
+    Returns:
+        list of ndarrays: Computed features.
+    '''
+    first_key = next(iter(data[0]))
+    n_channels, _ = data[0][first_key].shape
+    features_per_channel = 1
+
+    features = []
+    for fold in data:
+        n_trials = len(fold)
+        features_for_fold = np.empty(
+            [n_trials, n_channels * features_per_channel])
+        for j, key in enumerate(fold):
+            trial = fold[key]
+            diff_ent = sp.stats.differential_entropy(trial, window_length=None, base=None, axis=1, method='auto')
+            features_for_fold[j] = np.transpose(diff_ent)
+        features_for_fold = features_for_fold.reshape(
+            [n_trials, n_channels*features_per_channel])
+        features.append(features_for_fold)
+    return features
 
 def time_series_features(data):
     '''
