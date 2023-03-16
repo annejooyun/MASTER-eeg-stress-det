@@ -94,7 +94,8 @@ def compute_stai_y1_scores(path='Data/STAI_grading.xlsx'):
 
     y1_text = 'Total score Y1'
     columns = ['SubjectNo', 'D1Y1', 'D2Y1', 'J1Y1', 'J2Y1']
-
+    
+    # Open file
     try:
         xl = pd.ExcelFile(path)
     except FileNotFoundError:
@@ -122,7 +123,7 @@ def compute_stai_y1_scores(path='Data/STAI_grading.xlsx'):
     return scores_df
 
 
-def compute_stai_score_labels(scores, low_cutoff, high_cutoff):
+def compute_stai_score_labels(scores, valid_recs, low_cutoff, high_cutoff):
     """
     Convert scores to labels based on low and high cutoffs.
     Parameters
@@ -151,13 +152,16 @@ def compute_stai_score_labels(scores, low_cutoff, high_cutoff):
             else:
                 label = 1
 
-            if not invalid_flag: 
+            if not invalid_flag:
                 subject = i + 1
                 session = math.ceil((j+1)/v.NUM_SESSIONS)
                 run = j%v.NUM_RUNS + 1
 
                 key = f'P{str(subject).zfill(3)}_S{str(session).zfill(3)}_{str(run).zfill(3)}'
-                labels[key] = label
+                if key in valid_recs:
+                    labels[key] = label
+                else:
+                    print("Invalid record")
             else:
                 print("Invalid value for label")
     print(labels)
@@ -183,5 +187,5 @@ def get_stai_labels(valid_recs, path='Data/STAI_grading.xlsx', low_cutoff=37, hi
         Dictionary containing labels for valid recordings.
     """
     scores = compute_stai_y1_scores(path)
-    labels = compute_stai_score_labels(scores, low_cutoff, high_cutoff)
+    labels = compute_stai_score_labels(scores, valid_recs, low_cutoff, high_cutoff)
     return labels

@@ -223,3 +223,16 @@ def reconstruct_dicts(subjects_list, x_dict, y_dict):
                 labels_dict[key] = val
 
     return(data_dict, labels_dict)
+
+
+def dict_to_arr(data_dict):
+    keys_list = list(data_dict.keys())
+
+    data_arr = np.empty((len(keys_list), v.NUM_CHANNELS, v.NUM_SAMPLES))
+    i = 0
+    for key in keys_list:
+        data = data_dict[key]
+        data_arr[i] = data
+        i += 1
+    
+    return data_arr
