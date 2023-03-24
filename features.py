@@ -3,6 +3,14 @@ import mne_features.univariate as mne_f
 import numpy as np
 import utils.variables as v
 
+#Kymatio dependencies
+import tensorflow as tf
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input, Flatten, Dense
+
+from kymatio.keras import Scattering1D
+
+
 def differential_entropy(data):
     '''
     Computes the features variance, RMS and peak-to-peak amplitude using the package mne_features.
