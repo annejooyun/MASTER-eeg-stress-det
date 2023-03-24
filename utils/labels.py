@@ -161,9 +161,9 @@ def compute_stai_score_labels(scores, valid_recs, low_cutoff, high_cutoff):
                 if key in valid_recs:
                     labels[key] = label
                 else:
-                    print("Invalid record")
+                    print(f"{key} has invalid record length")
             else:
-                print("Invalid value for label")
+                print(f"{key} has invalid value for label")
     print(labels)
     return labels
 
