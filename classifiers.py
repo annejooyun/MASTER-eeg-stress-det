@@ -350,14 +350,14 @@ def EEGNet_classification_2(train_data, test_data, val_data, train_labels, test_
 
     probs       = model.predict(test_data)
     preds       = probs.argmax(axis = -1)  
-    acc         = np.mean(preds == test_labels.argmax(axis=-1))
+    acc         = np.mean(preds == test_labels)
     print("Classification accuracy: %f " % (acc))
 
 
     # plot the confusion matrices for both classifiers
     names        = ['Stressed', 'Non-stressed']
     plt.figure(0)
-    plot_confusion_matrix(preds, test_labels.argmax(axis = -1), names, title = 'EEGNet-8,2')
+    plot_confusion_matrix(preds, test_labels, names, title = 'EEGNet-8,2')
 
     return probs
  
