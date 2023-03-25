@@ -13,6 +13,8 @@ def read_eeg_data(data_type, filename, output_type):
         data_key = 'raw_eeg_data'
     elif data_type == 'ica':
         data_key = 'Clean_data'
+    elif data_type == 'init':
+        data_key = 'Clean_data'
     else:
         print(f'No data with data_type = {data_type} found')
         return 0
@@ -44,10 +46,10 @@ def extract_eeg_data(valid_recs, data_type, output_type):
 
     if data_type == "raw":
         dir = v.DIR_RAW
-        data_key = 'Data'
     elif data_type == "ica":
         dir = v.DIR_ICA_FILTERED
-        data_key = 'Clean_data'
+    elif data_type == "init":
+        dir = v.DIR_INIT_FILTERED
     else:
         print("No files matching data type found")
         return 0

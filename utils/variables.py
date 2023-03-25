@@ -3,6 +3,7 @@ import os
 
 DIR_RAW = 'Data/Raw_eeg'
 DIR_ICA_FILTERED = 'Data/ICA_data'
+DIR_INIT_FILTERED = 'Data/Init_filter_data'
 
 LABELS_PATH = 'Data/STAI_grading.xls'
 
@@ -15,5 +16,5 @@ SFREQ = 250
 
 
 
-DATA_TYPES = ["raw", "ica"]
+DATA_TYPES = ["raw", "ica", "init"]
 MAPPING = {'0':'F4','1':'Fp2','2':'C3','3':'FC6','4':'O1','5':'Oz','6':'FT9','7':'T8'}
