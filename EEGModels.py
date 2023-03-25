@@ -48,6 +48,15 @@ from tensorflow.keras.layers import Input, Flatten
 from tensorflow.keras.constraints import max_norm
 from tensorflow.keras import backend as K
 
+#For TSGL
+import tensorflow as tf
+from keras.api._v2.keras.constraints import max_norm, \
+                                                              min_max_norm, \
+                                                              unit_norm
+from keras.api._v2.keras import backend as K
+
+from regularizers import l_1, l_2, l1_l2, l2_1, tsc, sgl, tsgl, TSG
+
 
 def EEGNet(nb_classes=2, Chans = 64, Samples = 128, 
              dropoutRate = 0.5, kernLength = 64, F1 = 8, 
@@ -388,3 +397,62 @@ def ShallowConvNet(nb_classes, Chans = 64, Samples = 128, dropoutRate = 0.5):
     softmax      = Activation('softmax')(dense)
     
     return Model(inputs=input_main, outputs=softmax)
+
+
+def TSGLEEGNet(nb_classes=2, Chans = 64, Samples = 128,
+               dropoutRate=0.5,
+               kernLength=64,
+               F1=9,
+               D=4,
+               F2=32,
+               FSLength=16,
+               l1=1e-4,
+               l21=1e-4,
+               tl1=1e-5,
+               norm_rate=0.25,
+               dtype=tf.float32,
+               dropoutType='Dropout'):
+    """
+    An improvement of EEGNet. Using TSGL regularization.
+    """
+    if dropoutType == 'SpatialDropout2D':
+        dropoutType = SpatialDropout2D
+    elif dropoutType == 'Dropout':
+        dropoutType = Dropout
+    else:
+        raise ValueError('dropoutType must be one of SpatialDropout2D, '
+                         'AlphaDropout or Dropout, passed as a string.')
+    # Learn from raw EEG signals
+    _input_s = Input(shape=(Chans, Samples, 1), dtype=dtype)
+    s = Conv2D(F1, (1, kernLength),
+               padding='same',
+               use_bias=False,
+               name='tfconv')(_input_s)
+    s = BatchNormalization(axis=-1)(s)
+    s = DepthwiseConv2D((Chans, 1),
+                        use_bias=False,
+                        depth_multiplier=D,
+                        depthwise_constraint=max_norm(1.),
+                        name='sconv')(s)
+    s = BatchNormalization(axis=-1)(s)
+    s = Activation('elu')(s)
+    s = AveragePooling2D((1, 4))(s)
+    s = dropoutType(dropoutRate)(s)
+    s = Conv2D(F2, (1, FSLength),
+               use_bias=False,
+               padding='same',
+               kernel_regularizer=sgl(l1, l21),
+               activity_regularizer=tsc(tl1),
+               name='fs')(s)
+    s = BatchNormalization(axis=-1)(s)
+    s = Activation('elu')(s)
+    # s = AveragePooling2D((1, 8))(s)
+    s = dropoutType(dropoutRate)(s)
+    flatten = Flatten(name='flatten')(s)
+    dense = Dense(
+        nb_classes,
+        kernel_constraint=max_norm(norm_rate),
+    )(flatten)
+    _output_s = Activation('softmax', name='softmax')(dense)
+
+    return Model(inputs=_input_s, outputs=_output_s)

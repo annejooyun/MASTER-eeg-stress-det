@@ -3,14 +3,44 @@ import mne_features.univariate as mne_f
 import numpy as np
 import utils.variables as v
 
+import numpy as np
+import scipy as sp
+
 #Kymatio dependencies
 import tensorflow as tf
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Flatten, Dense
 
+from tensorflow.keras import layers
+
+from tensorflow.python.framework.ops import disable_eager_execution
+disable_eager_execution()
+
 from kymatio.keras import Scattering1D
 
+def kymatio_wave_scattering(data):
+    first_key = next(iter(data[0]))
+    n_channels, _ = data[0][first_key].shape
+    features_per_channel = 1
 
+    features = []
+    for fold in data:
+        n_trials = len(fold)
+        features_for_fold = np.empty(
+            [n_trials, n_channels * features_per_channel])
+        for j, key in enumerate(fold):
+            trial = fold[key]
+            T = len(trial[0])
+            print(T)
+            J = 8
+            Q = 12
+            x_in = layers.Input(shape=(T))
+            S = Scattering1D(J,Q=Q)(x_in)
+            wav_scat = S(trial)
+            features_for_fold[j] = np.transpose(wav_scat)
+        features_for_fold = features_for_fold.reshape(
+            [n_trials, n_channels*features_per_channel])
+        features.append(features_for_fold)
 def differential_entropy(data):
     '''
     Computes the features variance, RMS and peak-to-peak amplitude using the package mne_features.
