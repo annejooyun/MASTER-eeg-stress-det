@@ -1,9 +1,10 @@
 # EEG Stress Detection
-Classification of stress using EEG recordings from the SAM 40 dataset. A description of the dataset can be found [here](https://www.sciencedirect.com/science/article/pii/S2352340921010465).
+Classification of stress using EEG recordings.
+All data is available in \Data folder.
 
 
 ## Files
-The code is split into Jupyter notebooks.
+The code is split into Jupyter notebooks and Python scripts.
 
 **dataset**
 
