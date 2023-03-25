@@ -8,7 +8,10 @@ import utils.variables as v
 
 
 def read_eeg_data(data_type, filename, output_type):
-
+    '''
+    Loads eeg data and returns the appropriate output dependant on output_type
+    '''
+    #Assoociating correct data_key to the inputted data_type
     if data_type == 'raw':
         data_key = 'raw_eeg_data'
     elif data_type == 'ica':
@@ -19,9 +22,13 @@ def read_eeg_data(data_type, filename, output_type):
         print(f'No data with data_type = {data_type} found')
         return 0
     
+    #Loads data
     data = scipy.io.loadmat(filename)[data_key]
+
+    #Removes data recorded after 5 minutes
     data = data[:,:75000] # 5 MIN * 60 SEK/MIN * 250 SAMPLES/SEK = 75 000 SAMPLES
 
+    #Checks output type and returns correct data
     if output_type == 'np':
         return data
     
@@ -39,7 +46,7 @@ def extract_eeg_data(valid_recs, data_type, output_type):
     '''
     Loads data from the dataset.
     The data_type parameter specifies which of the datasets to load. Possible values
-    are raw and ica_filtered.
+    are raw, ica filtered and initially filtered.
     Returns
     '''
     assert (data_type in v.DATA_TYPES)
@@ -70,19 +77,35 @@ def extract_eeg_data(valid_recs, data_type, output_type):
 
 
 def multi_to_binary_classification(x_dict, y_dict):
+    '''
+    Removes mildly stressed recordings, thus changing the target values from multi to binary.
+    '''
     targ_val = 1
-    rem=[]
-    for i in y_dict.keys():
-        if y_dict[i] is targ_val:
-            rem.append(i)
-    # printing result
-    print("\nThe extracted keys : \n" + str(rem))
+    remove = []
+    for key in y_dict.keys():
+        if y_dict[key] is targ_val:
+            remove.append(key)
 
-    [y_dict.pop(key) for key in rem]
-    [x_dict.pop(key) for key in rem]
+    #Printing result
+    print("\nThe extracted keys : \n" + str(remove))
+
+    #Removes the keys in yhe list remove 
+    [y_dict.pop(key) for key in remove]
+    [x_dict.pop(key) for key in remove]
+
     print(f"\nDictionary after removal of keys from y_dict: \n {y_dict.keys()}")
     print(f"\nDictionary after removal of keys from x_dict: \n {x_dict.keys()}")
+
+    #Changing labels from 2 to 1
+    for key in y_dict.keys():
+        if y_dict[key] == 2:
+            y_dict[key] = 1
+   
+    print(f"\nDictionary after removal of keys from y_dict: \n {y_dict.keys()}")
+    print(f"\nDictionary after removal of keys from x_dict: \n {x_dict.keys()}")
+
     return x_dict, y_dict
+
 
 def segment_data(x_dict, y_dict, epoch_duration=3):
     """
@@ -168,7 +191,12 @@ def kfold_split(x_epochs, y_epochs, n_splits=5, shuffle=True, random_state=None)
 
 def split_dataset(x_dict, y_dict):
     """
-    We split the dataset into training-, validation- and test-sets.
+    Splits the dataset into training-, validation- and test-sets.
+    Since we use a intra-personal model, the dataset should be split along subjects, not recordings.
+    This way it is ensured that one subjects recordings are uniquely in one of the data sets.
+
+    In order to ensure balanced splits, a new "mean label" is calculated for each subject.
+    The mean label list is later used as the "stratify" parameter when splitting the dataset.
 
     - Training consists of 60% of the participants
     - Validation consists of 20% of the participants
@@ -176,7 +204,8 @@ def split_dataset(x_dict, y_dict):
     """
 
     keys_list = list(x_dict.keys())
-
+    
+    #Creates a list of all subjects
     subject_list = []
     for i in range(v.NUM_SUBJECTS+1):
         subject = f'P{str(i).zfill(3)}'
@@ -184,6 +213,7 @@ def split_dataset(x_dict, y_dict):
             if subject in key and subject not in subject_list:
                 subject_list.append(subject)
 
+    #Calculates a new "mean label" for each participant.
     mean_labels_list = []
     for i in range(v.NUM_SUBJECTS+1):
         sum_label = 0
@@ -199,9 +229,11 @@ def split_dataset(x_dict, y_dict):
             mean_label = sum_label/num_recordings
             mean_labels_list.append(round(mean_label,0))
 
+    #Dividing subjects between the three datasets
     subjects, subjects_test, mean_labels, mean_labels_test = train_test_split(subject_list, mean_labels_list, test_size= 0.2, random_state=42, stratify = mean_labels_list)
     subjects_train, subjects_val, mean_labels_train, mean_labels_val = train_test_split(subjects, mean_labels, test_size=0.25, random_state=42, stratify = mean_labels)
-        
+    
+    #Reconstructing train-,validation- and test-sets with corresponding data
     train_data_dict, train_labels_dict = reconstruct_dicts(subjects_train, x_dict, y_dict)
     test_data_dict, test_labels_dict = reconstruct_dicts(subjects_test, x_dict, y_dict)
     val_data_dict, val_labels_dict = reconstruct_dicts(subjects_val, x_dict, y_dict)
@@ -210,6 +242,9 @@ def split_dataset(x_dict, y_dict):
 
 
 def reconstruct_dicts(subjects_list, x_dict, y_dict):
+    '''
+    Reconstructs the dictionarys after the dataset has been split into train-, validation- and test-sets
+    '''
     data_dict = {}
     labels_dict = {}
 
@@ -228,6 +263,9 @@ def reconstruct_dicts(subjects_list, x_dict, y_dict):
 
 
 def dict_to_arr(data_dict):
+    '''
+    Turns dictionary into numpy array
+    '''
     keys_list = list(data_dict.keys())
 
     data_arr = np.empty((len(keys_list), v.NUM_CHANNELS, v.NUM_SAMPLES))
@@ -236,5 +274,5 @@ def dict_to_arr(data_dict):
         data = data_dict[key]
         data_arr[i] = data
         i += 1
-    
+
     return data_arr

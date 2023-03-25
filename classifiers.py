@@ -328,7 +328,7 @@ def EEGNet_classification_2(train_data, test_data, val_data, train_labels, test_
     # pretty noisy run-to-run, but most runs should be comparable to xDAWN + 
     # Riemannian geometry classification (below)
     ################################################################################
-    fittedModel = model.fit(train_data, train_labels, batch_size = 16, epochs = 100, 
+    fittedModel = model.fit(train_data, train_labels, batch_size = 64, epochs = 300, 
                             verbose = 2, validation_data=(val_data, val_labels),
                             callbacks=[checkpointer], class_weight = class_weights)
 
@@ -352,7 +352,7 @@ def EEGNet_classification_2(train_data, test_data, val_data, train_labels, test_
     preds       = probs.argmax(axis = -1)  
     acc         = np.mean(preds == test_labels)
     print("Classification accuracy: %f " % (acc))
-    
+
 
     return probs
  
