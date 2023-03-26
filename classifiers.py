@@ -251,6 +251,7 @@ def EEGNet_classification(train_data, test_data, val_data, train_labels, test_la
     print("Classification accuracy: %f " % (acc))
     return probs
  
+ 
 def EEGNet_SSVEP_classification(train_data, test_data, val_data, train_labels, test_labels, val_labels):
 
     model = EEGNet_SSVEP(nb_classes = 2, Chans = v.NUM_CHANNELS, Samples = v.NUM_SAMPLES, 
