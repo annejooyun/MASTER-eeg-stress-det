@@ -342,9 +342,9 @@ def DeepConvNet(nb_classes, Chans = 64, Samples = 256,
     flatten      = Flatten()(block4)
     
     dense        = Dense(nb_classes, kernel_constraint = max_norm(0.5))(flatten)
-    softmax      = Activation('softmax')(dense)
+    sigmoid      = Activation('sigmoid')(dense)
     
-    return Model(inputs=input_main, outputs=softmax)
+    return Model(inputs=input_main, outputs=sigmoid)
 
 
 # need these for ShallowConvNet
@@ -394,9 +394,9 @@ def ShallowConvNet(nb_classes, Chans = 64, Samples = 128, dropoutRate = 0.5):
     block1       = Dropout(dropoutRate)(block1)
     flatten      = Flatten()(block1)
     dense        = Dense(nb_classes, kernel_constraint = max_norm(0.5))(flatten)
-    softmax      = Activation('softmax')(dense)
+    sigmoid      = Activation('sigmoid')(dense)
     
-    return Model(inputs=input_main, outputs=softmax)
+    return Model(inputs=input_main, outputs=sigmoid)
 
 
 def TSGLEEGNet(nb_classes=2, Chans = 64, Samples = 128,
@@ -453,6 +453,6 @@ def TSGLEEGNet(nb_classes=2, Chans = 64, Samples = 128,
         nb_classes,
         kernel_constraint=max_norm(norm_rate),
     )(flatten)
-    _output_s = Activation('softmax', name='softmax')(dense)
+    _output_s = Activation('sigmoid', name='sigmoid')(dense)
 
     return Model(inputs=_input_s, outputs=_output_s)

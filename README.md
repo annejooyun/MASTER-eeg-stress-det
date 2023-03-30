@@ -1,64 +1,63 @@
 # EEG Stress Detection
 Classification of stress using EEG recordings.
+
+
+## Dataset
 All data is available in \Data folder.
+Here, different versions of the data can be found.
+- Raw_eeg, which includes the untouched data
+- Init_filter_data, which includes the data after initial filtering (band-pass and Savitsky-Golay filtering)
+- ICA_data, which includes the data after artifact removal with Independent Component Analysis
 
 
 ## Files
 The code is split into Jupyter notebooks and Python scripts.
 
-**dataset**
+### utils
+Folder with all "help-functions"
 
-Contains functions for loading and transforming the dataset
+**variables.py**
+Includes all important variables
 
-```load_dataset(raw=True, test_type="Arithmetic")```
-Loads data from the SAM 40 Dataset with the test specified by test_type.
-The raw flag specifies whether to use the raw data or the filtered data.
-Returns a Numpy Array with shape (120, 32, 3200).
+**data.py**
+Includes functions for loading eeg data, switching the dataset from multi to binary classification, splitting data into train-, validation- and test-sets etc.
 
-```load_labels()```
+**labels.py**
+Includes functions for computing stress labels, either with PSS or STAI-Y
 
-Loads labels from the dataset and transforms the label values to binary values.
-Values larger than 5 are set to 1 and values lower than or equal to 5 are set to zero.
+**valid_recs.py**
+Includes functions for filtering out invalid recordings
 
-```convert_to_epochs(dataset, channels, sfreq)```
+**metrics.py**
+Includes a function that computes accuracy, spesificity and sensitivity of a classification
 
-Splits EEG data into epochs with length 1 sec
+### extract_eeg.ipynb
+Jupyter Notebook for loading .xdf-file, extracting EEG data, markers and PCG data, and saving the EEG data in .mat format
 
+### channel_selection.ipynb
+Jupyter Notebook for channel selection using the Genetic Algorithm.
+The script uses the best performing settings to reduce the number of electrodes from 32 to 8 with as little loss in performance as possible.
 
-**filtering**
-
-An experimental notebook focused on filtering the data and removing artifacts through linear filters and ICA.
-
+### filtering.ipynb
+Jupyter Notebook for filtering EEG data.
+Raw EEG is filtered using a band-pass and a Savitsky-Golay filter.Then, artifact removal is performed usin an Independent Component Analysis.
 The filtering is performed using the ```mne``` package which is a Python package specialised in MEG and EEG analysis and visualisation.
 
-**features**
+### kfold_classification.ipynb
+Jupyter Notebook for classification using k-fold split and KNN, SVM or MLP
 
-```time_series_features(data, channels)```
-Generate the features mean, variance, skewness and rms using the package mne_features.
-The data should be on the form (n_trials, n_secs, n_channels, sfreq)
-The output is on the form (n_trials*n_secs, n_channels*n_features)
+### EEGNet_classification.ipynb
+Jupyter Notebook for classification splitting along subjects using EEGNet's implementations of various deep neural networks.
 
-```nonlinear_features(data, channels)```
-Compute the features Hurst exponent, Higuchi Fractal Dimension and Katz Fractal Dimension using the package mne_features.
-The data should be on the form (n_trials, n_secs, n_channels, sfreq)
-The output is on the form (n_trials*n_secs, n_channels*n_features)
+### features.py
+Includes functions to compute time series, nonlinear, entropy, hjorth and frequency band features. Used before feeding the data into KNN, SVM or MLP.
 
-```entropy_features(data, channels, sfreq)```
- Compute the features Approximate Entropy, Sample Entropy, Spectral Entropy and SVD entropy using the package mne_features.
-The data should be on the form (n_trials, n_secs, n_channels, sfreq)
-The output is on the form (n_trials*n_secs, n_channels*n_features)
+### EEGModels.py
+ARL_EEGModels - A collection of Convolutional Neural Network models for EEG Signal Processing and Classification, using Keras and Tensorflow. Repurposed from 
+https://github.com/vlawhern/arl-eegmodels/blob/master/EEGModels.py
 
-```hjorth_features(data, channels, sfreq)```
-Compute the features Hjorth mobility (spectral), Hjorth complexity (spectral), Hjorth mobility and Hjorth complexity using the package mne_features.
-The data should be on the form (n_trials, n_secs, n_channels, sfreq)
-The output is on the form (n_trials*n_secs, n_channels*n_features)
-
-```freq_band_features(data, channels, sfreq, freq_bands)```
-Compute the frequency bands delta, theta, alpha, beta and gamma using the package mne_features.
-The data should be on the form (n_trials, n_secs, n_channels, sfreq)
-The output is on the form (n_trials*n_secs, n_channels*n_features)
+### genetic_alg.py
+Includes support functions to the Genetic Algorithm. Repurposed from https://github.com/ahmedfgad/GeneticAlgorithmPython
 
 
-**classification**
 
-Classification using features loaded from **features.py**. Uses an LR classifer, KNN classifier, SVM classifier and an MLP.

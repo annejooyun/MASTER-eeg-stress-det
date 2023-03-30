@@ -18,7 +18,7 @@ from tensorflow.keras import datasets, layers, models
 import matplotlib.pyplot as plt
 
 # EEGNet-specific imports
-from EEGModels import EEGNet,EEGNet_SSVEP,TSGLEEGNet, DeepConvNet, ShallowConvNet
+from EEGModels import EEGNet,EEGNet_SSVEP,TSGLEEGNet, DeepConvNet, ShallowConvNet, 
 from tensorflow.keras import utils as np_utils
 from tensorflow.keras.callbacks import ModelCheckpoint
 
@@ -251,10 +251,11 @@ def EEGNet_classification(train_data, test_data, val_data, train_labels, test_la
     print("Classification accuracy: %f " % (acc))
     return probs
  
+ 
 def EEGNet_SSVEP_classification(train_data, test_data, val_data, train_labels, test_labels, val_labels):
 
     model = EEGNet_SSVEP(nb_classes = 2, Chans = v.NUM_CHANNELS, Samples = v.NUM_SAMPLES, 
-             dropoutRate = 0.5, kernLength = 256, F1 = 96, 
+             dropoutRate = 0.5, kernLength = 128, F1 = 96, 
              D = 1, F2 = 96, dropoutType = 'Dropout')
 
     # compile the model and set the optimizers
@@ -378,6 +379,48 @@ def EEGNet_ShallowConvNet_classification(train_data, test_data, val_data, train_
 
     model = ShallowConvNet(nb_classes=2, Chans = v.NUM_CHANNELS, Samples = v.NUM_SAMPLES,
                 dropoutRate = 0.5)
+
+    # compile the model and set the optimizers
+    model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', 
+                metrics = ['accuracy'])
+
+    # count number of parameters in the model
+    numParams    = model.count_params()    
+
+    # set a valid path for your system to record model checkpoints
+    checkpointer = ModelCheckpoint(filepath='/tmp/checkpoint.h5', verbose=1,
+                                save_best_only=True)
+
+    class_weights = {0:1, 1:1}
+
+    # fit the model
+    fittedModel = model.fit(train_data, train_labels, batch_size = 32, epochs = 300, 
+                            verbose = 2, validation_data=(val_data, val_labels),
+                            callbacks=[checkpointer], class_weight = class_weights)
+
+    # load optimal weights
+    model.load_weights('/tmp/checkpoint.h5')
+
+    # make prediction on test set.
+    probs       = model.predict(test_data)
+    preds       = probs.argmax(axis = -1)  
+    acc         = np.mean(preds == test_labels)
+    print("Classification accuracy: %f " % (acc))
+
+
+    # plot the confusion matrices for both classifiers
+    names        = ['Stressed', 'Non-stressed']
+    plt.figure(0)
+    plot_confusion_matrix(preds, test_labels, names, title = 'EEGNet-8,2')
+
+    return probs
+
+
+
+
+def EEGNet_TSGLEEGNet_classification(train_data, test_data, val_data, train_labels, test_labels, val_labels):
+    
+    model = TSGLEEGNet(nb_classes=2, Chans = v.NUM_CHANNELS, Samples = v.NUM_SAMPLES, dropoutRate = 0.5)
 
     # compile the model and set the optimizers
     model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', 
