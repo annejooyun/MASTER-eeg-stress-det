@@ -18,7 +18,7 @@ from tensorflow.keras import datasets, layers, models
 import matplotlib.pyplot as plt
 
 # EEGNet-specific imports
-from EEGModels import EEGNet,EEGNet_SSVEP,TSGLEEGNet, DeepConvNet, ShallowConvNet
+from EEGModels import EEGNet,EEGNet_SSVEP,TSGLEEGNet, DeepConvNet, ShallowConvNet, 
 from tensorflow.keras import utils as np_utils
 from tensorflow.keras.callbacks import ModelCheckpoint
 
