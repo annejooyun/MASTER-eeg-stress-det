@@ -16,31 +16,51 @@ from tensorflow.keras import layers
 from tensorflow.python.framework.ops import disable_eager_execution
 disable_eager_execution()
 
-from kymatio.keras import Scattering1D
+from kymatio.numpy import Scattering1D, Scattering2D
 
 def kymatio_wave_scattering(data):
     first_key = next(iter(data[0]))
     n_channels, _ = data[0][first_key].shape
-    features_per_channel = 1
+    T_ = data[0][first_key].shape[-1]
+    #print('T_: ', T_)
+    J = 6
+    Q = 16
+    S = Scattering1D(J,T_,Q)
+    x_ = data[0][first_key][0]
+    x_ = x_ / np.max(np.abs(x_))
+    Sx_ = S(x_)
+    #print('Sx_ shape: ', Sx_.shape)
 
+    features_per_channel = Sx_.shape[0]
+    #print('n_chan: ', n_channels)
     features = []
     for fold in data:
         n_trials = len(fold)
+        #print('ntrials: ',len(fold))
         features_for_fold = np.empty(
             [n_trials, n_channels * features_per_channel])
         for j, key in enumerate(fold):
             trial = fold[key]
-            T = len(trial[0])
-            print(T)
-            J = 8
-            Q = 12
-            x_in = layers.Input(shape=(T))
-            S = Scattering1D(J,Q=Q)(x_in)
+            trial = trial / np.max(np.abs(trial))
+            #print('trial shape: ', trial.shape)
+            T = trial.shape[-1]
+            #print('T: ', T)
+            J = 6
+            Q = 16
+            S = Scattering1D(J,T,Q)
             wav_scat = S(trial)
+            wav_scat = np.mean(wav_scat, axis=-1)
+            wav_scat = np.ndarray.flatten(wav_scat)
+            #print('features_for_fold[j] shape: ', features_for_fold[j].shape)
+            #print('features_for_fold shape: ', features_for_fold.shape)
+            #print('wavscat_t shape: ', np.transpose(wav_scat).shape)
             features_for_fold[j] = np.transpose(wav_scat)
+            
         features_for_fold = features_for_fold.reshape(
             [n_trials, n_channels*features_per_channel])
         features.append(features_for_fold)
+    return features
+
 def differential_entropy(data):
     '''
     Computes the features variance, RMS and peak-to-peak amplitude using the package mne_features.
@@ -89,10 +109,13 @@ def time_series_features(data):
             variance = mne_f.compute_variance(trial)
             rms = mne_f.compute_rms(trial)
             ptp_amp = mne_f.compute_ptp_amp(trial)
+            #print('variance shape: ', variance.shape)
             features_for_fold[j] = np.concatenate([variance, rms, ptp_amp])
         features_for_fold = features_for_fold.reshape(
             [n_trials, n_channels*features_per_channel])
         features.append(features_for_fold)
+        #print('features len: ', len(features))
+        #print('features shape: ', features[0].shape)
     return features
 
 
