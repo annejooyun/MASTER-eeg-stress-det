@@ -14,9 +14,7 @@ def read_eeg_data(data_type, filename, output_type):
     #Assoociating correct data_key to the inputted data_type
     if data_type == 'raw':
         data_key = 'raw_eeg_data'
-    elif data_type == 'ica':
-        data_key = 'Clean_data'
-    elif data_type == 'init':
+    elif data_type == 'ica' or 'init' or 'new_ica':
         data_key = 'Clean_data'
     else:
         print(f'No data with data_type = {data_type} found')
@@ -57,6 +55,8 @@ def extract_eeg_data(valid_recs, data_type, output_type):
         dir = v.DIR_ICA_FILTERED
     elif data_type == "init":
         dir = v.DIR_INIT_FILTERED
+    elif data_type == 'new_ica':
+        dir = v.DIR_NEW_ICA
     else:
         print("No files matching data type found")
         return 0
@@ -262,13 +262,16 @@ def reconstruct_dicts(subjects_list, x_dict, y_dict):
     return(data_dict, labels_dict)
 
 
-def dict_to_arr(data_dict):
+def dict_to_arr(data_dict, data_type):
     '''
     Turns dictionary into numpy array
     '''
     keys_list = list(data_dict.keys())
-
-    data_arr = np.empty((len(keys_list), v.NUM_CHANNELS, v.NUM_SAMPLES))
+    
+    if data_type == 'ica':
+        data_arr = np.empty((len(keys_list), v.NUM_CHANNELS, v.NUM_SAMPLES))
+    elif data_type == 'new_ica':
+        data_arr = np.empty((len(keys_list), v.NUM_CHANNELS, v.NEW_NUM_SAMPLES))
     i = 0
     for key in keys_list:
         data = data_dict[key]

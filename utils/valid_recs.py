@@ -41,6 +41,8 @@ def filter_valid_recs(recs, data_type, output_type):
         dir = v.DIR_ICA_FILTERED
     elif data_type == 'init':
         dir = v.DIR_INIT_FILTERED
+    elif data_type == 'new_ica':
+        dir = v.DIR_NEW_ICA
     else:
         print(f'No data with data_type = {data_type} found')
         return 0
@@ -54,7 +56,10 @@ def filter_valid_recs(recs, data_type, output_type):
             data = read_eeg_data(data_type, f_name, output_type)
             if output_type == 'mne' and data.n_times / data.info['sfreq'] >= 5 * 60:
                 valid_recs.append(rec)
-            elif output_type == 'np' and data.shape[1] >= v.NUM_SAMPLES:
+            elif output_type == 'np':
+                if data_type == 'ica' and data.shape[1] >= v.NUM_SAMPLES:
+                    valid_recs.append(rec)
+                if data_type == 'new_ica' and data.shape[1]>= v.NEW_NUM_SAMPLES:
                     valid_recs.append(rec)
             else:
                 print(f'{f_name} not valid')

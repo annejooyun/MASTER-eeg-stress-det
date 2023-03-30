@@ -18,7 +18,7 @@ from tensorflow.keras import datasets, layers, models
 import matplotlib.pyplot as plt
 
 # EEGNet-specific imports
-from EEGModels import EEGNet,EEGNet_SSVEP,TSGLEEGNet, DeepConvNet, ShallowConvNet, 
+from EEGModels import EEGNet,EEGNet_SSVEP,TSGLEEGNet, DeepConvNet, ShallowConvNet, TSGLEEGNet
 from tensorflow.keras import utils as np_utils
 from tensorflow.keras.callbacks import ModelCheckpoint
 
@@ -190,13 +190,18 @@ def cnn_classification(train_data, test_data, train_labels, test_labels):
 
 
 
-def EEGNet_classification(train_data, test_data, val_data, train_labels, test_labels, val_labels):
+def EEGNet_classification(data_type, train_data, test_data, val_data, train_labels, test_labels, val_labels):
 
     # configure the EEGNet-8,2,16 model with kernel length of 32 samples (other 
     # model configurations may do better, but this is a good starting point)
-    model = EEGNet(nb_classes = 2, Chans = v.NUM_CHANNELS , Samples = v.NUM_SAMPLES, 
+    if data_type == 'new_ica':
+        model = EEGNet(nb_classes = 2, Chans = v.NUM_CHANNELS , Samples = v.NEW_NUM_SAMPLES, 
                 dropoutRate = 0.5, kernLength = 32, F1 = 8, D = 2, F2 = 16, 
                 dropoutType = 'Dropout')
+    else:
+        model = EEGNet(nb_classes = 2, Chans = v.NUM_CHANNELS , Samples = v.NUM_SAMPLES, 
+                    dropoutRate = 0.5, kernLength = 32, F1 = 8, D = 2, F2 = 16, 
+                    dropoutType = 'Dropout')
 
     # compile the model and set the optimizers
     model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', 
@@ -251,12 +256,19 @@ def EEGNet_classification(train_data, test_data, val_data, train_labels, test_la
     print("Classification accuracy: %f " % (acc))
     return probs
  
- 
-def EEGNet_SSVEP_classification(train_data, test_data, val_data, train_labels, test_labels, val_labels):
 
-    model = EEGNet_SSVEP(nb_classes = 2, Chans = v.NUM_CHANNELS, Samples = v.NUM_SAMPLES, 
+
+ 
+def EEGNet_SSVEP_classification(data_type, train_data, test_data, val_data, train_labels, test_labels, val_labels):
+
+    if data_type == 'new_ica':
+        model = EEGNet_SSVEP(nb_classes = 2, Chans = v.NUM_CHANNELS, Samples = v.NEW_NUM_SAMPLES, 
              dropoutRate = 0.5, kernLength = 128, F1 = 96, 
              D = 1, F2 = 96, dropoutType = 'Dropout')
+    else:
+        model = EEGNet_SSVEP(nb_classes = 2, Chans = v.NUM_CHANNELS, Samples = v.NUM_SAMPLES, 
+                dropoutRate = 0.5, kernLength = 128, F1 = 96, 
+                D = 1, F2 = 96, dropoutType = 'Dropout')
 
     # compile the model and set the optimizers
     model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', 
@@ -292,52 +304,18 @@ def EEGNet_SSVEP_classification(train_data, test_data, val_data, train_labels, t
 
     return probs
 
-def EEGNet_TSGL_classification(train_data, test_data, val_data, train_labels, test_labels, val_labels):
-
-    model = TSGLEEGNet(nb_classes = 2, Chans = v.NUM_CHANNELS , Samples = v.NUM_SAMPLES, 
-                       dropoutRate=0.5, kernLength=64, F1=9, D=4, F2=32, FSLength=16, l1=1e-4, l21=1e-4, tl1=1e-5, norm_rate=0.25, 
-                       dtype=tf.float32, dropoutType='Dropout')
-
-    # compile the model and set the optimizers
-    model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', 
-                metrics = ['accuracy'])
-
-    # count number of parameters in the model
-    numParams    = model.count_params()    
-
-    # set a valid path for your system to record model checkpoints
-    checkpointer = ModelCheckpoint(filepath='/tmp/checkpoint.h5', verbose=1,
-                                save_best_only=True)
-
-    class_weights = {0:1, 1:1}
-
-    # fit the model
-    fittedModel = model.fit(train_data, train_labels, batch_size = 32, epochs = 300, 
-                            verbose = 2, validation_data=(val_data, val_labels),
-                            callbacks=[checkpointer], class_weight = class_weights)
-
-    # load optimal weights
-    model.load_weights('/tmp/checkpoint.h5')
-
-    # make prediction on test set.
-    probs       = model.predict(test_data)
-    preds       = probs.argmax(axis = -1)  
-    acc         = np.mean(preds == test_labels)
-    print("Classification accuracy: %f " % (acc))
 
 
-    # plot the confusion matrices for both classifiers
-    names        = ['Stressed', 'Non-stressed']
-    plt.figure(0)
-    plot_confusion_matrix(preds, test_labels, names, title = 'EEGNet-8,2')
+def EEGNet_TSGL_classification(data_type, train_data, test_data, val_data, train_labels, test_labels, val_labels):
 
-    return probs
-
-
-def EEGNet_DeepConvNet_classification(train_data, test_data, val_data, train_labels, test_labels, val_labels):
-
-    model = DeepConvNet(nb_classes=2, Chans = v.NUM_CHANNELS, Samples = v.NUM_SAMPLES,
-                dropoutRate = 0.5)
+    if data_type == 'new_ica':
+        model = TSGLEEGNet(nb_classes = 2, Chans = v.NUM_CHANNELS , Samples = v.NEW_NUM_SAMPLES, 
+                        dropoutRate=0.5, kernLength=64, F1=9, D=4, F2=32, FSLength=16, l1=1e-4, l21=1e-4, tl1=1e-5, norm_rate=0.25, 
+                        dtype=tf.float32, dropoutType='Dropout')
+    else:
+        model = TSGLEEGNet(nb_classes = 2, Chans = v.NUM_CHANNELS , Samples = v.NUM_SAMPLES, 
+                        dropoutRate=0.5, kernLength=64, F1=9, D=4, F2=32, FSLength=16, l1=1e-4, l21=1e-4, tl1=1e-5, norm_rate=0.25, 
+                        dtype=tf.float32, dropoutType='Dropout')
 
     # compile the model and set the optimizers
     model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', 
@@ -375,10 +353,58 @@ def EEGNet_DeepConvNet_classification(train_data, test_data, val_data, train_lab
     return probs
 
 
-def EEGNet_ShallowConvNet_classification(train_data, test_data, val_data, train_labels, test_labels, val_labels):
+def EEGNet_DeepConvNet_classification(data_type, train_data, test_data, val_data, train_labels, test_labels, val_labels):
+    if data_type == 'new_ica':
+        model = DeepConvNet(nb_classes=2, Chans = v.NUM_CHANNELS, Samples = v.NEW_NUM_SAMPLES,
+                    dropoutRate = 0.5)
+    else:
+        model = DeepConvNet(nb_classes=2, Chans = v.NUM_CHANNELS, Samples = v.NUM_SAMPLES,
+                    dropoutRate = 0.5)
 
-    model = ShallowConvNet(nb_classes=2, Chans = v.NUM_CHANNELS, Samples = v.NUM_SAMPLES,
-                dropoutRate = 0.5)
+    # compile the model and set the optimizers
+    model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', 
+                metrics = ['accuracy'])
+
+    # count number of parameters in the model
+    numParams    = model.count_params()    
+
+    # set a valid path for your system to record model checkpoints
+    checkpointer = ModelCheckpoint(filepath='/tmp/checkpoint.h5', verbose=1,
+                                save_best_only=True)
+
+    class_weights = {0:1, 1:1}
+
+    # fit the model
+    fittedModel = model.fit(train_data, train_labels, batch_size = 32, epochs = 300, 
+                            verbose = 2, validation_data=(val_data, val_labels),
+                            callbacks=[checkpointer], class_weight = class_weights)
+
+    # load optimal weights
+    model.load_weights('/tmp/checkpoint.h5')
+
+    # make prediction on test set.
+    probs       = model.predict(test_data)
+    preds       = probs.argmax(axis = -1)  
+    acc         = np.mean(preds == test_labels)
+    print("Classification accuracy: %f " % (acc))
+
+
+    # plot the confusion matrices for both classifiers
+    names        = ['Stressed', 'Non-stressed']
+    plt.figure(0)
+    plot_confusion_matrix(preds, test_labels, names, title = 'EEGNet-8,2')
+
+    return probs
+
+
+def EEGNet_ShallowConvNet_classification(data_type, train_data, test_data, val_data, train_labels, test_labels, val_labels):
+
+    if data_type == 'new_ica':
+        model = ShallowConvNet(nb_classes=2, Chans = v.NUM_CHANNELS, Samples = v.NEW_NUM_SAMPLES,
+                               dropoutRate = 0.5)
+    else:
+        model = ShallowConvNet(nb_classes=2, Chans = v.NUM_CHANNELS, Samples = v.NUM_SAMPLES,
+                    dropoutRate = 0.5)
 
     # compile the model and set the optimizers
     model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', 
@@ -418,9 +444,12 @@ def EEGNet_ShallowConvNet_classification(train_data, test_data, val_data, train_
 
 
 
-def EEGNet_TSGLEEGNet_classification(train_data, test_data, val_data, train_labels, test_labels, val_labels):
+def EEGNet_TSGLEEGNet_classification(data_type, train_data, test_data, val_data, train_labels, test_labels, val_labels):
     
-    model = TSGLEEGNet(nb_classes=2, Chans = v.NUM_CHANNELS, Samples = v.NUM_SAMPLES, dropoutRate = 0.5)
+    if data_type == 'new_ica':
+        model = TSGLEEGNet(nb_classes=2, Chans = v.NUM_CHANNELS, Samples = v.NEW_NUM_SAMPLES, dropoutRate = 0.5)
+    else:
+        model = TSGLEEGNet(nb_classes=2, Chans = v.NUM_CHANNELS, Samples = v.NUM_SAMPLES, dropoutRate = 0.5)
 
     # compile the model and set the optimizers
     model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', 
