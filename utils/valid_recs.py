@@ -79,7 +79,6 @@ def get_valid_recs(data_type, output_type):
     valid_recs : list
         A list of valid recording names in the format 'P00X_S00X_00X'.
     """
-
     recs = generate_all_recs()
     print('Filtering out invalid recordings\n')
     valid_recs = filter_valid_recs(recs, data_type, output_type)

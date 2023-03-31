@@ -4,8 +4,8 @@ import numpy as np
 import scipy
 from sklearn.model_selection import StratifiedKFold, train_test_split
 import logging
-import utils.variables as v
 
+import utils.variables as v
 
 def read_eeg_data(data_type, filename, output_type):
     '''
@@ -241,6 +241,7 @@ def split_dataset(x_dict, y_dict):
     return train_data_dict, test_data_dict, val_data_dict, train_labels_dict, test_labels_dict, val_labels_dict
 
 
+
 def reconstruct_dicts(subjects_list, x_dict, y_dict):
     '''
     Reconstructs the dictionarys after the dataset has been split into train-, validation- and test-sets
@@ -279,3 +280,39 @@ def dict_to_arr(data_dict, data_type):
         i += 1
 
     return data_arr
+
+
+def epoch_data_and_labels(data, labels , sfreq = 128):
+    
+    # Calculate the number of samples per epoch
+    samples_per_epoch = v.EPOCH_LENGTH * sfreq
+
+    # Get the shape of the data
+    n_recordings, n_channels, n_total_time_steps = data.shape
+
+    # Calculate the number of epochs
+    n_epochs = n_total_time_steps // samples_per_epoch
+
+    # Create new arrays to hold the epoched data and labels
+    data_epoched = np.zeros((n_epochs*n_recordings, n_channels, samples_per_epoch))
+    print(data_epoched.shape)
+    labels_epoched = np.zeros((n_epochs*n_recordings, 1))
+    print(labels_epoched.shape)
+
+
+    # Loop over each epoch and extract the corresponding time steps from the data and 
+    i = 0
+    for rec in range(n_recordings):
+        for epoch_idx in range(n_epochs):
+            start_idx = epoch_idx * samples_per_epoch
+            end_idx = start_idx + samples_per_epoch
+
+            data_slice = data[rec, :, start_idx:end_idx]
+            data_epoched[i, :, :] = data_slice
+
+            labels_epoched[i, :] = labels[rec, :]
+
+            i += 1
+
+
+    return data_epoched, labels_epoched
