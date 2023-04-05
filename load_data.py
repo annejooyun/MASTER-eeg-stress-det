@@ -42,9 +42,9 @@ def load_data(data_type, label_type, epoched = False, binary = True):
     print(f"Length of validation data set: {len(val_data_dict)}")
     print(f"Length of test data set: {len(test_data_dict)}")
 
-    train_data = dict_to_arr(train_data_dict, 'new_ica')
-    test_data = dict_to_arr(test_data_dict, 'new_ica')
-    val_data = dict_to_arr(val_data_dict, 'new_ica')
+    train_data = dict_to_arr(train_data_dict, data_type)
+    test_data = dict_to_arr(test_data_dict, data_type)
+    val_data = dict_to_arr(val_data_dict, data_type)
     
     train_labels = np.reshape(np.array(list(train_labels_dict.values())), (len(train_data),1))
     test_labels = np.reshape(np.array(list(test_labels_dict.values())), (len(test_data),1))

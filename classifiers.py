@@ -194,7 +194,8 @@ def EEGNet_classification(train_data, test_data, val_data, train_labels, test_la
 
     # configure the EEGNet-8,2,16 model with kernel length of 32 samples (other 
     # model configurations may do better, but this is a good starting point)
-
+    print(epoched)
+    print(data_type)
     if epoched:
         if data_type == 'new_ica':
             model = EEGNet(nb_classes = 2, Chans = v.NUM_CHANNELS , Samples = v.EPOCH_LENGTH*v.NEW_SFREQ, 
@@ -266,11 +267,16 @@ def EEGNet_classification(train_data, test_data, val_data, train_labels, test_la
     preds       = probs.argmax(axis = -1)  
     acc         = np.mean(preds == test_labels)
     print("Classification accuracy: %f " % (acc))
+
+    # plot the confusion matrices for both classifiers
+    '''names        = ['Non-Stressed', 'Stressed']
+    plt.figure(0)
+    plot_confusion_matrix(preds, test_labels, names, title = 'Confusion matrix for EEGNet')'''
+
+
     return probs
  
 
-
- 
 def EEGNet_SSVEP_classification(train_data, test_data, val_data, train_labels, test_labels, val_labels, data_type, epoched = True):
       
     if epoched:
@@ -318,12 +324,11 @@ def EEGNet_SSVEP_classification(train_data, test_data, val_data, train_labels, t
     print("Classification accuracy: %f " % (acc))
 
     # plot the confusion matrices for both classifiers
-    names        = ['Stressed', 'Non-stressed']
+    '''names        = ['Non-Stressed', 'Stressed']
     plt.figure(0)
-    plot_confusion_matrix(preds, test_labels, names, title = 'EEGNet-8,2')
+    plot_confusion_matrix(preds, test_labels, names, title = 'Confusion matrix for SSVEP')'''
 
     return probs
-
 
 
 def EEGNet_TSGL_classification(train_data, test_data, val_data, train_labels, test_labels, val_labels, data_type, epoched = True):
@@ -372,9 +377,9 @@ def EEGNet_TSGL_classification(train_data, test_data, val_data, train_labels, te
 
 
     # plot the confusion matrices for both classifiers
-    names        = ['Stressed', 'Non-stressed']
+    '''names        = ['Non-stressed', 'Stressed']
     plt.figure(0)
-    plot_confusion_matrix(preds, test_labels, names, title = 'EEGNet-8,2')
+    plot_confusion_matrix(preds, test_labels, names, title = 'Confusion matrix for TSGL')'''
 
     return probs
 
@@ -424,9 +429,9 @@ def EEGNet_DeepConvNet_classification(train_data, test_data, val_data, train_lab
 
 
     # plot the confusion matrices for both classifiers
-    names        = ['Stressed', 'Non-stressed']
+    '''names        = ['Non-stressed', 'Stressed']
     plt.figure(0)
-    plot_confusion_matrix(preds, test_labels, names, title = 'EEGNet-8,2')
+    plot_confusion_matrix(preds, test_labels, names, title = 'Confusion matrix for DeepConvNet')'''
 
     return probs
 
@@ -477,8 +482,8 @@ def EEGNet_ShallowConvNet_classification(train_data, test_data, val_data, train_
 
 
     # plot the confusion matrices for both classifiers
-    names        = ['Stressed', 'Non-stressed']
+    '''names        = ['Non-stressed', 'Stressed']
     plt.figure(0)
-    plot_confusion_matrix(preds, test_labels, names, title = 'EEGNet-8,2')
+    plot_confusion_matrix(preds, test_labels, names, title = 'Confusion matrix for ShallowConvNet')'''
 
     return probs

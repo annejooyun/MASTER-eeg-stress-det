@@ -22,5 +22,5 @@ NEW_NUM_SAMPLES = 38400
 EPOCH_LENGTH = 1
 
 
-DATA_TYPES = ["raw", "ica", "init", 'new_ica']
+DATA_TYPES = ['raw', 'ica', 'init', 'new_ica']
 MAPPING = {'0':'F4','1':'Fp2','2':'C3','3':'FC6','4':'O1','5':'Oz','6':'FT9','7':'T8'}
