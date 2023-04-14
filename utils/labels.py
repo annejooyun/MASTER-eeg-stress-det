@@ -4,29 +4,29 @@ import logging
 import math
 import utils.variables as v
 
-def load_pss_labels(filename):
+def load_pss_scores(filename):
     """
     Load and binarize PSS (Perceived Stress Scale) scores from an Excel file.
     Parameters
     ----------
     filename : str
         The path to the Excel file containing the PSS scores.
-    threshold : int or float
-        The threshold value to use for binarizing the PSS scores. Scores greater than `threshold` will be
-        binarized to 1, and scores less than or equal to `threshold` will be binarized to 0.
+
     Returns
     -------
     scores : pandas.DataFrame
-        A DataFrame containing the binarized PSS scores, where each row represents a subject and each
-        column represents a session. Scores are binarized according to the `threshold` value.
+        A DataFrame containing the PSS scores, where each row represents a subject and each
+        column represents a session. 
+        Scores are represented as:
+         - 0/non-stressed for values between 0-3, 
+         - 1/mildly-stressed for values betweem 4-6 and
+         - 2/stressed for values between 7-10
     """
-    scores = pd.read_excel(filename, sheet_name='Rating 1-10', skiprows=[1])
-    score = scores.iloc[:, 1:]
-    print(score)
-    #TODO: This is not correct, change to three classes
+    scores = pd.read_excel(filename, sheet_name='Rating 1-10')
+    return scores
 
 
-def filter_pss_labels(scores, valid_recs):
+def filter_pss_labels(scores, valid_recs, low_cutoff, high_cutoff):
     """
     Filter PSS (Perceived Stress Scale) scores by record ID.
     Parameters
@@ -40,22 +40,33 @@ def filter_pss_labels(scores, valid_recs):
     filtered_labels : dict
         A dictionary containing the filtered PSS scores, where the keys are record IDs and the values are the corresponding scores.
     """
-    scores_dict = {}
-    for i, _ in scores.iterrows():
-        for j in range(len(scores.columns)):
-            session_no = j // 2 + 1
-            run_no = j % 2 + 1
-            subject = f'P{str(i+1).zfill(3)}'
-            session = f'S{str(session_no).zfill(3)}'
-            run = f'{str(run_no).zfill(3)}'
-            rec = f'{subject}_{session}_{run}'
-            scores_dict[rec] = scores.iloc[i, j]
+    #Turning scores lower than low_cutoff to label = 0
+    #               higher than high_cutoff to label = 2
+    #               the rest to label = 1
+    print(scores.iloc[:, 1:])
+    scores.iloc[:, 1:] = scores.iloc[:, 1:].applymap(
+        lambda x: 0 if pd.isna(x) else (0 if x <= low_cutoff else (2 if x >= high_cutoff else 1)))
+    
+    labels = {}
+    for i in range(v.NUM_SUBJECTS-1):
+        for j in range(v.NUM_SESSIONS*v.NUM_RUNS):
+            subject = i + 1
+            session = math.ceil((j+1)/v.NUM_SESSIONS)
+            run = j%v.NUM_RUNS + 1
 
-    filtered_labels = {rec: scores_dict[rec] for rec in valid_recs}
-    return filtered_labels
+            key = f'P{str(subject).zfill(3)}_S{str(session).zfill(3)}_{str(run).zfill(3)}'
+            if key in valid_recs:
+                row = scores.loc[i]
+                labels[key] = row[f'S{str(session).zfill(3)}_{str(run).zfill(3)}']
+            else:
+                print(f"{key} has invalid record length")
+
+    print("\n---- Labels ----")
+    print(labels)
+    return labels
 
 
-def get_pss_labels(valid_recs, filename='Data/STAI_grading.xlsx'):
+def get_pss_labels(valid_recs, filename='Data/STAI_grading.xlsx', low_cutoff = 3, high_cutoff = 7):
     """
     Get filtered and binarized PSS (Perceived Stress Scale) scores for a list of valid record IDs.
     Parameters
@@ -73,9 +84,9 @@ def get_pss_labels(valid_recs, filename='Data/STAI_grading.xlsx'):
         A dictionary containing the filtered and binarized PSS scores, where the keys are record IDs and the
         values are the corresponding scores.
     """
-    scores = load_pss_labels(filename)
-    filtered_scores = filter_pss_labels(scores.iloc[:, 1:], valid_recs)
-    return filtered_scores
+    scores = load_pss_scores(filename)
+    filtered_labels = filter_pss_labels(scores, valid_recs, low_cutoff, high_cutoff)
+    return filtered_labels
 
 
 
@@ -117,9 +128,9 @@ def compute_stai_y1_scores(path='Data/STAI_grading.xlsx'):
 
         scores.append(np.concatenate([y1_scores]))
     scores_df = pd.DataFrame(scores, columns=columns[1:])
-    scores_df.insert(0, columns[0], range(1, n_subjects+1))
 
-    print(scores_df)
+
+    scores_df.insert(0, columns[0], range(1, n_subjects+1))
     return scores_df
 
 
@@ -137,33 +148,30 @@ def compute_stai_score_labels(scores, valid_recs, low_cutoff, high_cutoff):
     Returns
     -------
     pd.DataFrame
-        Dataframe containing the scores (0, 1 or 2) for all subjects.
+        Dataframe containing the labels (0, 1 or 2) for all subjects.
     """
+
+    #Turning scores lower than low_cutoff to label = 0
+    #               higher than high_cutoff to label = 2
+    #               the rest to label = 1
+    scores.iloc[:, 1:] = scores.iloc[:, 1:].applymap(
+        lambda x: 0 if x < low_cutoff else (2 if x > high_cutoff else 1))
+
+    #Only keeping valid recordings
     labels = {}
     for i in range(v.NUM_SUBJECTS):
         for j in range(v.NUM_SESSIONS*v.NUM_RUNS):
-            invalid_flag = False
-            if scores.iloc[i, j+1] == 0:
-                invalid_flag = True
-            elif scores.iloc[i,j+1] < low_cutoff:
-                label = 0
-            elif scores.iloc[i,j+1] > high_cutoff:
-                label = 2
-            else:
-                label = 1
+            subject = i + 1
+            session = math.ceil((j+1)/v.NUM_SESSIONS)
+            run = j%v.NUM_RUNS + 1
 
-            if not invalid_flag:
-                subject = i + 1
-                session = math.ceil((j+1)/v.NUM_SESSIONS)
-                run = j%v.NUM_RUNS + 1
-
-                key = f'P{str(subject).zfill(3)}_S{str(session).zfill(3)}_{str(run).zfill(3)}'
-                if key in valid_recs:
-                    labels[key] = label
-                else:
-                    print(f"{key} has invalid record length")
+            key = f'P{str(subject).zfill(3)}_S{str(session).zfill(3)}_{str(run).zfill(3)}'
+            if key in valid_recs:
+                labels[key] = scores.iloc[i,j+1]
             else:
-                print(f"{key} has invalid value for label")
+                print(f"{key} has invalid record length")
+
+    print("\n---- Labels ----")
     print(labels)
     return labels
 

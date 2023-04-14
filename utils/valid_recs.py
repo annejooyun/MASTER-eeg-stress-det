@@ -1,5 +1,4 @@
 import os
-import logging
 import utils.variables as v
 from utils.data import read_eeg_data
 
@@ -11,7 +10,7 @@ def generate_all_recs():
     recs : list of str
         List of all possible recording names in the format 'P00X_S00X_00X'.
     """
-
+    print("---- Generating all recordings ----")
     recs = []
     for i in range(1, v.NUM_SUBJECTS + 1):
         subject = f'P{str(i).zfill(3)}'
@@ -21,6 +20,7 @@ def generate_all_recs():
                 run = f'{str(k).zfill(3)}'
                 rec = f'{subject}_{session}_{run}'
                 recs.append(rec)
+    print("All records generated")
     return recs
 
 def filter_valid_recs(recs, data_type, output_type):
@@ -47,8 +47,9 @@ def filter_valid_recs(recs, data_type, output_type):
         print(f'No data with data_type = {data_type} found')
         return 0
 
+    print('\n---- Filtering out invalid recordings ----')
     valid_recs = []
-
+    
     for rec in recs:
         subject, session, run = rec.split('_')
         f_name = os.path.join(dir, f'sub-{subject}_ses-{session}_run-{run}.mat')
@@ -62,14 +63,13 @@ def filter_valid_recs(recs, data_type, output_type):
                 if data_type == 'new_ica' and data.shape[1]>= v.NEW_NUM_SAMPLES:
                     valid_recs.append(rec)
             else:
-                print(f'{f_name} not valid')
+                print(f'{f_name} not valid file name')
         except:
-            logging.error(f"1) Failed to read data for recording {rec}")
+            print(f"ERROR 1) Failed to read data for recording {rec}")
             continue
-
-        
-
+    print('\n---- Returning valid recordings ----')
     return valid_recs
+
 
 def get_valid_recs(data_type, output_type):
     """
@@ -79,8 +79,7 @@ def get_valid_recs(data_type, output_type):
     valid_recs : list
         A list of valid recording names in the format 'P00X_S00X_00X'.
     """
+
     recs = generate_all_recs()
-    print('Filtering out invalid recordings\n')
     valid_recs = filter_valid_recs(recs, data_type, output_type)
-    print('Returning valid recordings\n')
     return valid_recs

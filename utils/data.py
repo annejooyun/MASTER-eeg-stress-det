@@ -3,7 +3,7 @@ import os
 import numpy as np
 import scipy
 from sklearn.model_selection import StratifiedKFold, train_test_split
-import logging
+
 
 import utils.variables as v
 
@@ -67,12 +67,11 @@ def extract_eeg_data(valid_recs, data_type, output_type):
         f_name = os.path.join(dir, f'sub-{subject}_ses-{session}_run-{run}.mat')
         try:
             data = read_eeg_data(data_type, f_name, output_type)
+            key = f"{subject}_{session}_{run}"
+            eeg_data[key] = data
         except:
-            logging.error(f"2) Failed to read data for recording {rec}")
+            print(f"ERROR 2) Failed to read data for recording {rec}")
             data = None
-
-        key = f"{subject}_{session}_{run}"
-        eeg_data[key] = data
     return eeg_data
 
 
@@ -93,16 +92,11 @@ def multi_to_binary_classification(x_dict, y_dict):
     [y_dict.pop(key) for key in remove]
     [x_dict.pop(key) for key in remove]
 
-    print(f"\nDictionary after removal of keys from y_dict: \n {y_dict.keys()}")
-    print(f"\nDictionary after removal of keys from x_dict: \n {x_dict.keys()}")
-
     #Changing labels from 2 to 1
     for key in y_dict.keys():
         if y_dict[key] == 2:
             y_dict[key] = 1
-   
-    print(f"\nDictionary after removal of keys from y_dict: \n {y_dict.keys()}")
-    print(f"\nDictionary after removal of keys from x_dict: \n {x_dict.keys()}")
+
 
     return x_dict, y_dict
 
@@ -295,10 +289,7 @@ def epoch_data_and_labels(data, labels , sfreq = 128):
 
     # Create new arrays to hold the epoched data and labels
     data_epoched = np.zeros((n_epochs*n_recordings, n_channels, samples_per_epoch))
-    print(data_epoched.shape)
     labels_epoched = np.zeros((n_epochs*n_recordings, 1))
-    print(labels_epoched.shape)
-
 
     # Loop over each epoch and extract the corresponding time steps from the data and 
     i = 0

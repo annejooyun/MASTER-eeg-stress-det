@@ -11,7 +11,7 @@ def load_data(data_type, label_type, epoched = False, binary = True):
 
     # Loads valid recording into valid_recs
     valid_recs = get_valid_recs(data_type=data_type, output_type = 'np')
-    print(f'Valid recs: \n {valid_recs}')
+    #print(f'Valid recs: \n {valid_recs}')
 
     # Loads EEG data into x_dict_
     x_dict_ = extract_eeg_data(valid_recs, data_type=data_type, output_type='np')
@@ -22,17 +22,16 @@ def load_data(data_type, label_type, epoched = False, binary = True):
     elif label_type == 'pss':
         y_dict_ = get_pss_labels(valid_recs)
     else:
-        print('No such label in data set')
+        print('No such label type in data set')
 
-    print(y_dict_)
-    print(f" Length of data after removing invalid labels: {len(x_dict_)}")
-    print(f" Lenght og labels after removing invalid labels: {len(y_dict_)}")   
+    print(f"\nLength of data after removing invalid labels: {len(x_dict_)}")
+    print(f"Length og labels after removing invalid labels: {len(y_dict_)}")   
 
     # Default: Changes the data into binary classes
     if binary:
         x_dict, y_dict = multi_to_binary_classification(x_dict_, y_dict_)
-        print(f" Length of data after removing mildly stressed subjects: {len(x_dict_)}")
-        print(f" Lenght og labels after removing  mildly stressed subjects: {len(y_dict_)}")
+        print(f"\nLength of data after removing mildly stressed subjects: {len(x_dict_)}")
+        print(f"Length og labels after removing  mildly stressed subjects: {len(y_dict_)}")
     else:
         # Or keeps the three classes. Must be specified by "binary" parameter
         x_dict = x_dict_.copy()
@@ -40,7 +39,7 @@ def load_data(data_type, label_type, epoched = False, binary = True):
 
     # Splits dataset into train, test, validation
     train_data_dict, test_data_dict, val_data_dict, train_labels_dict, test_labels_dict, val_labels_dict = split_dataset(x_dict, y_dict)
-    print(f"Length of train data set: {len(train_data_dict)}")
+    print(f"\nLength of train data set: {len(train_data_dict)}")
     print(f"Length of validation data set: {len(val_data_dict)}")
     print(f"Length of test data set: {len(test_data_dict)}")
 
@@ -52,8 +51,6 @@ def load_data(data_type, label_type, epoched = False, binary = True):
     test_labels = np.reshape(np.array(list(test_labels_dict.values())), (len(test_data),1))
     val_labels = np.reshape(np.array(list(val_labels_dict.values())), (len(val_data),1))
 
-
-    print(train_data.shape)
     if epoched:
         if data_type == 'new_ica':
             train_data, train_labels = epoch_data_and_labels(train_data, train_labels, sfreq=v.NEW_SFREQ)
@@ -64,7 +61,7 @@ def load_data(data_type, label_type, epoched = False, binary = True):
             test_data, test_labels = epoch_data_and_labels(test_data, test_labels, sfreq=v.SFREQ)
             val_data, val_labels = epoch_data_and_labels(val_data, val_labels, sfreq=v.SFREQ)        
 
-    print(f"Shape of train data set: {train_data.shape}")
+    print(f"\nShape of train data set: {train_data.shape}")
     print(f"Shape of train labels set: {train_labels.shape}")
 
     print(f"Shape of validation data set: {val_data.shape}")
