@@ -20,9 +20,11 @@ def load_data(data_type, label_type, epoched = False, binary = True):
     if label_type == 'stai':
         y_dict_ = get_stai_labels(valid_recs) 
     elif label_type == 'pss':
-        y_dict = get_pss_labels(valid_recs)
+        y_dict_ = get_pss_labels(valid_recs)
     else:
         print('No such label in data set')
+
+    print(y_dict_)
     print(f" Length of data after removing invalid labels: {len(x_dict_)}")
     print(f" Lenght og labels after removing invalid labels: {len(y_dict_)}")   
 

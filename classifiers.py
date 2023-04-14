@@ -10,7 +10,7 @@ from keras import models, Input
 from keras import optimizers as opt
 from keras import backend as K
 from keras.layers import Dense
-from keras_tuner.tuners import RandomSearch
+#from keras_tuner.tuners import RandomSearch
 from tensorflow.keras.utils import to_categorical
 
 import tensorflow as tf
@@ -202,7 +202,7 @@ def EEGNet_classification(train_data, test_data, val_data, train_labels, test_la
 
     # the syntax is {class_1:weight_1, class_2:weight_2,...}. Here just setting
     # the weights all to be 1
-    class_weights = {0:1, 1:2}
+    class_weights = {0:1, 1:3}
 
     ################################################################################
     # fit the model. Due to very small sample sizes this can get
@@ -273,7 +273,7 @@ def EEGNet_SSVEP_classification(train_data, test_data, val_data, train_labels, t
     checkpointer = ModelCheckpoint(filepath='/tmp/checkpoint.h5', verbose=1,
                                 save_best_only=True)
     
-    class_weights = {0:1, 1:2}
+    class_weights = {0:1, 1:3}
 
     # fit the model.
     fittedModel = model.fit(train_data, train_labels, batch_size = 32, epochs = 300, 
@@ -325,7 +325,7 @@ def EEGNet_TSGL_classification(train_data, test_data, val_data, train_labels, te
     checkpointer = ModelCheckpoint(filepath='/tmp/checkpoint.h5', verbose=1,
                                 save_best_only=True)
 
-    class_weights = {0:1, 1:2}
+    class_weights = {0:1, 1:3}
 
     # fit the model
     fittedModel = model.fit(train_data, train_labels, batch_size = 32, epochs = 300, 
@@ -377,7 +377,7 @@ def EEGNet_DeepConvNet_classification(train_data, test_data, val_data, train_lab
     checkpointer = ModelCheckpoint(filepath='/tmp/checkpoint.h5', verbose=1,
                                 save_best_only=True)
 
-    class_weights = {0:1, 1:2}
+    class_weights = {0:1, 1:3}
 
     # fit the model
     fittedModel = model.fit(train_data, train_labels, batch_size = 32, epochs = 300, 
@@ -430,7 +430,7 @@ def EEGNet_ShallowConvNet_classification(train_data, test_data, val_data, train_
     checkpointer = ModelCheckpoint(filepath='/tmp/checkpoint.h5', verbose=1,
                                 save_best_only=True)
 
-    class_weights = {0:1, 1:2}
+    class_weights = {0:1, 1:3}
 
     # fit the model
     fittedModel = model.fit(train_data, train_labels, batch_size = 32, epochs = 300, 

@@ -4,7 +4,7 @@ import logging
 import math
 import utils.variables as v
 
-def load_pss_labels(filename, threshold):
+def load_pss_labels(filename):
     """
     Load and binarize PSS (Perceived Stress Scale) scores from an Excel file.
     Parameters
@@ -21,9 +21,9 @@ def load_pss_labels(filename, threshold):
         column represents a session. Scores are binarized according to the `threshold` value.
     """
     scores = pd.read_excel(filename, sheet_name='Rating 1-10', skiprows=[1])
-    scores.iloc[:, 1:] = scores.iloc[:, 1:].applymap(
-        lambda x: x if pd.isna(x) else x > threshold)
-    return scores
+    score = scores.iloc[:, 1:]
+    print(score)
+    #TODO: This is not correct, change to three classes
 
 
 def filter_pss_labels(scores, valid_recs):
@@ -55,7 +55,7 @@ def filter_pss_labels(scores, valid_recs):
     return filtered_labels
 
 
-def get_pss_labels(valid_recs, filename='Data/STAI_grading.xlsx', threshold=4):
+def get_pss_labels(valid_recs, filename='Data/STAI_grading.xlsx'):
     """
     Get filtered and binarized PSS (Perceived Stress Scale) scores for a list of valid record IDs.
     Parameters
@@ -73,7 +73,7 @@ def get_pss_labels(valid_recs, filename='Data/STAI_grading.xlsx', threshold=4):
         A dictionary containing the filtered and binarized PSS scores, where the keys are record IDs and the
         values are the corresponding scores.
     """
-    scores = load_pss_labels(filename, threshold)
+    scores = load_pss_labels(filename)
     filtered_scores = filter_pss_labels(scores.iloc[:, 1:], valid_recs)
     return filtered_scores
 
