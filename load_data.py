@@ -15,6 +15,7 @@ def load_data(data_type, label_type, epoched = False, binary = True):
 
     # Loads EEG data into x_dict_
     x_dict_ = extract_eeg_data(valid_recs, data_type=data_type, output_type='np')
+    print(f"\nLength of data: {len(x_dict_)}")
 
     # Loads correct labels into y_dict_
     if label_type == 'stai':
@@ -23,13 +24,6 @@ def load_data(data_type, label_type, epoched = False, binary = True):
         y_dict_ = get_pss_labels(valid_recs)
     else:
         print('No such label type in data set')
-
-
-
-
-
-
-
 
     print(f"\nLength of data after removing invalid labels: {len(x_dict_)}")
     print(f"Length of labels after removing invalid labels: {len(y_dict_)}")   

@@ -14,7 +14,7 @@ def read_eeg_data(data_type, filename, output_type):
     #Assoociating correct data_key to the inputted data_type
     if data_type == 'raw':
         data_key = 'raw_eeg_data'
-    elif data_type == 'ica' or 'init' or 'new_ica':
+    elif data_type=='ica' or data_type =='init' or data_type =='new_ica':
         data_key = 'Clean_data'
     else:
         print(f'No data with data_type = {data_type} found')
@@ -262,7 +262,7 @@ def dict_to_arr(data_dict, data_type):
     '''
     keys_list = list(data_dict.keys())
     
-    if data_type == 'ica':
+    if data_type == 'ica' or data_type == 'raw' or data_type=='init':
         data_arr = np.empty((len(keys_list), v.NUM_CHANNELS, v.NUM_SAMPLES))
     elif data_type == 'new_ica':
         data_arr = np.empty((len(keys_list), v.NUM_CHANNELS, v.NEW_NUM_SAMPLES))
