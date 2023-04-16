@@ -48,7 +48,7 @@ def filter_pss_labels(scores, valid_recs, low_cutoff, high_cutoff):
         lambda x: 0 if pd.isna(x) else (0 if x <= low_cutoff else (2 if x >= high_cutoff else 1)))
     
     labels = {}
-    for i in range(v.NUM_SUBJECTS-1):
+    for i in range(v.NUM_SUBJECTS):
         for j in range(v.NUM_SESSIONS*v.NUM_RUNS):
             subject = i + 1
             session = math.ceil((j+1)/v.NUM_SESSIONS)
@@ -88,6 +88,11 @@ def get_pss_labels(valid_recs, filename='Data/STAI_grading.xlsx', low_cutoff = 3
     filtered_labels = filter_pss_labels(scores, valid_recs, low_cutoff, high_cutoff)
     return filtered_labels
 
+
+
+
+
+#-----------------------------------------------------------------------------------------------------
 
 
 def compute_stai_y1_scores(path='Data/STAI_grading.xlsx'):
@@ -134,7 +139,7 @@ def compute_stai_y1_scores(path='Data/STAI_grading.xlsx'):
     return scores_df
 
 
-def compute_stai_score_labels(scores, valid_recs, low_cutoff, high_cutoff):
+def compute_stai_labels(scores, valid_recs, low_cutoff, high_cutoff):
     """
     Convert scores to labels based on low and high cutoffs.
     Parameters
@@ -195,5 +200,5 @@ def get_stai_labels(valid_recs, path='Data/STAI_grading.xlsx', low_cutoff=37, hi
         Dictionary containing labels for valid recordings.
     """
     scores = compute_stai_y1_scores(path)
-    labels = compute_stai_score_labels(scores, valid_recs, low_cutoff, high_cutoff)
+    labels = compute_stai_labels(scores, valid_recs, low_cutoff, high_cutoff)
     return labels

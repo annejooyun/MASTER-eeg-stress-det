@@ -82,7 +82,7 @@ def multi_to_binary_classification(x_dict, y_dict):
     targ_val = 1
     remove = []
     for key in y_dict.keys():
-        if y_dict[key] is targ_val:
+        if y_dict[key] == targ_val:
             remove.append(key)
 
     #Printing result
@@ -96,7 +96,6 @@ def multi_to_binary_classification(x_dict, y_dict):
     for key in y_dict.keys():
         if y_dict[key] == 2:
             y_dict[key] = 1
-
 
     return x_dict, y_dict
 

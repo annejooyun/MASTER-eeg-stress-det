@@ -24,14 +24,21 @@ def load_data(data_type, label_type, epoched = False, binary = True):
     else:
         print('No such label type in data set')
 
+
+
+
+
+
+
+
     print(f"\nLength of data after removing invalid labels: {len(x_dict_)}")
-    print(f"Length og labels after removing invalid labels: {len(y_dict_)}")   
+    print(f"Length of labels after removing invalid labels: {len(y_dict_)}")   
 
     # Default: Changes the data into binary classes
     if binary:
         x_dict, y_dict = multi_to_binary_classification(x_dict_, y_dict_)
         print(f"\nLength of data after removing mildly stressed subjects: {len(x_dict_)}")
-        print(f"Length og labels after removing  mildly stressed subjects: {len(y_dict_)}")
+        print(f"Length of labels after removing  mildly stressed subjects: {len(y_dict_)}")
     else:
         # Or keeps the three classes. Must be specified by "binary" parameter
         x_dict = x_dict_.copy()
