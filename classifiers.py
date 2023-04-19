@@ -1,10 +1,16 @@
 import numpy as np
+from utils.metrics import compute_metrics
 
 from sklearn.model_selection import train_test_split, GridSearchCV, PredefinedSplit
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn import metrics
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
+from sklearn.model_selection import StratifiedKFold
+from sklearn.metrics import classification_report
+
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 from keras import models, Input
 from keras import optimizers as opt
@@ -14,22 +20,12 @@ from keras.layers import Dense
 from tensorflow.keras.utils import to_categorical
 
 import tensorflow as tf
-from tensorflow.keras import datasets, layers, models
+from tensorflow.keras import models
 import matplotlib.pyplot as plt
 
 # EEGNet-specific imports
 from EEGModels import EEGNet,EEGNet_SSVEP,TSGLEEGNet, DeepConvNet, ShallowConvNet, TSGLEEGNet
-from tensorflow.keras import utils as np_utils
 from tensorflow.keras.callbacks import ModelCheckpoint
-
-
-# PyRiemann imports
-from pyriemann.estimation import XdawnCovariances
-from pyriemann.tangentspace import TangentSpace
-from pyriemann.utils.viz import plot_confusion_matrix
-from sklearn.pipeline import make_pipeline
-from sklearn.linear_model import LogisticRegression
-
 
 import utils.variables as v
 
@@ -160,8 +156,6 @@ def EEGNet_classification(train_data, test_data, val_data, train_labels, test_la
 
     # configure the EEGNet-8,2,16 model with kernel length of 32 samples (other 
     # model configurations may do better, but this is a good starting point)
-    print(epoched)
-    print(data_type)
     if epoched:
         if data_type == 'new_ica':
             model = EEGNet(nb_classes = 2, Chans = v.NUM_CHANNELS , Samples = v.EPOCH_LENGTH*v.NEW_SFREQ, 
@@ -209,7 +203,10 @@ def EEGNet_classification(train_data, test_data, val_data, train_labels, test_la
     # pretty noisy run-to-run, but most runs should be comparable to xDAWN + 
     # Riemannian geometry classification (below)
     ################################################################################
-    fittedModel = model.fit(train_data, train_labels, batch_size = 64, epochs = 300, 
+    '''fittedModel = model.fit(train_data, train_labels, batch_size = 64, epochs = 300, 
+                            verbose = 2, validation_data=(val_data, val_labels),
+                            callbacks=[checkpointer], class_weight = class_weights)'''
+    history = model.fit(train_data, train_labels, batch_size = 32, epochs = 200, 
                             verbose = 2, validation_data=(val_data, val_labels),
                             callbacks=[checkpointer], class_weight = class_weights)
 
@@ -234,16 +231,111 @@ def EEGNet_classification(train_data, test_data, val_data, train_labels, test_la
     acc         = np.mean(preds == test_labels)
     print("Classification accuracy: %f " % (acc))
 
+    # print performance
+    performance = compute_metrics(test_labels, preds)
+    print("Accuracy, Sensitivity, Specificyty:\n")
+    print(performance)
+
+    
+    # Plot Loss/Accuracy over time
+    # Create figure with secondary y-axis
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    # Add traces
+    fig.add_trace(go.Scatter( y=history.history['val_loss'], name="val_loss"), secondary_y=False)
+    fig.add_trace(go.Scatter( y=history.history['loss'], name="loss"), secondary_y=False)
+    fig.add_trace(go.Scatter( y=history.history['val_accuracy'], name="val accuracy"), secondary_y=True)
+    fig.add_trace(go.Scatter( y=history.history['accuracy'], name="accuracy"), secondary_y=True)
+    # Add figure title
+    fig.update_layout(title_text="Loss/Accuracy of EEGNet")
+    # Set x-axis title
+    fig.update_xaxes(title_text="Epoch")
+    # Set y-axes titles
+    fig.update_yaxes(title_text="Loss", secondary_y=False)
+    fig.update_yaxes(title_text="Accuracy", secondary_y=True)
+    fig.show()
+
+
     # plot the confusion matrices for both classifiers
-    '''names        = ['Non-Stressed', 'Stressed']
-    plt.figure(0)
-    plot_confusion_matrix(preds, test_labels, names, title = 'Confusion matrix for EEGNet')'''
-
-
+    conf_matrix = metrics.confusion_matrix(test_labels,preds)
+    print(conf_matrix)
     return probs
- 
 
-def EEGNet_SSVEP_classification(train_data, test_data, val_data, train_labels, test_labels, val_labels, data_type, epoched = True):
+
+def kfold_EEGNet_classification(data, labels, n_folds, data_type, epoched = True):
+
+    if epoched:
+        if data_type == 'new_ica':
+            model = EEGNet(nb_classes = 2, Chans = v.NUM_CHANNELS , Samples = v.EPOCH_LENGTH*v.NEW_SFREQ, 
+                    dropoutRate = 0.5, kernLength = 32, F1 = 8, D = 2, F2 = 16, 
+                    dropoutType = 'Dropout')
+        else:
+            model = EEGNet(nb_classes = 2, Chans = v.NUM_CHANNELS , Samples = v.EPOCH_LENGTH*v.SFREQ, 
+                    dropoutRate = 0.5, kernLength = 32, F1 = 8, D = 2, F2 = 16, 
+                    dropoutType = 'Dropout')
+    else: #if not epoched
+        if data_type == 'new_ica':
+            model = EEGNet(nb_classes = 2, Chans = v.NUM_CHANNELS , Samples = v.NEW_NUM_SAMPLES, 
+                    dropoutRate = 0.5, kernLength = 32, F1 = 8, D = 2, F2 = 16, 
+                    dropoutType = 'Dropout')
+        else:
+            model = EEGNet(nb_classes = 2, Chans = v.NUM_CHANNELS , Samples = v.NUM_SAMPLES, 
+                    dropoutRate = 0.5, kernLength = 32, F1 = 8, D = 2, F2 = 16, 
+                    dropoutType = 'Dropout')
+
+    model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', 
+                metrics = ['accuracy'])
+
+    numParams    = model.count_params()    
+
+    checkpointer = ModelCheckpoint(filepath='/tmp/checkpoint.h5', verbose=1,
+                                save_best_only=True)
+
+    class_weights = {0:1, 1:3}
+
+    # Split into k-folds
+    skf = StratifiedKFold(n_splits=n_folds)
+    total_accuarcy = 0
+
+    for fold, (train_index, val_index) in enumerate(skf.split(data, labels)):
+        print(f"\nFold nr: {fold}")
+        train_data, train_labels = data[train_index], labels[train_index]
+        val_data, val_labels = data[val_index], labels[val_index]
+
+        history = model.fit(train_data, train_labels, batch_size = 8, epochs = 20, 
+                            verbose = 2, validation_data=(val_data, val_labels),
+                            callbacks=[checkpointer], class_weight = class_weights)
+
+        # load optimal weights
+        model.load_weights('/tmp/checkpoint.h5')
+
+        probs       = model.predict(val_data)
+        preds       = probs.argmax(axis = -1)  
+        acc         = np.mean(preds == val_labels)
+        total_accuarcy += acc
+        print("Classification accuracy: %f " % (acc))
+
+        print(classification_report(val_labels, preds))
+        
+        # Plot Loss/Accuracy over time
+        # Create figure with secondary y-axis
+        fig = make_subplots(specs=[[{"secondary_y": True}]])
+        # Add traces
+        fig.add_trace(go.Scatter( y=history.history['val_loss'], name="val_loss"), secondary_y=False)
+        fig.add_trace(go.Scatter( y=history.history['loss'], name="loss"), secondary_y=False)
+        fig.add_trace(go.Scatter( y=history.history['val_accuracy'], name="val accuracy"), secondary_y=True)
+        fig.add_trace(go.Scatter( y=history.history['accuracy'], name="accuracy"), secondary_y=True)
+        # Add figure title
+        fig.update_layout(title_text="Loss/Accuracy of EEGNet")
+        # Set x-axis title
+        fig.update_xaxes(title_text="Epoch")
+        # Set y-axes titles
+        fig.update_yaxes(title_text="Loss", secondary_y=False)
+        fig.update_yaxes(title_text="Accuracy", secondary_y=True)
+        fig.show()
+    
+    classification_acc = total_accuarcy/n_folds
+    print(f"Overall classification accuracy: {classification_acc}")
+
       
     if epoched:
         if data_type == 'new_ica':
@@ -276,28 +368,49 @@ def EEGNet_SSVEP_classification(train_data, test_data, val_data, train_labels, t
     class_weights = {0:1, 1:3}
 
     # fit the model.
-    fittedModel = model.fit(train_data, train_labels, batch_size = 32, epochs = 300, 
+    history = model.fit(train_data, train_labels, batch_size = 32, epochs = 200, 
                             verbose = 2, validation_data=(val_data, val_labels),
                             callbacks=[checkpointer], class_weight = class_weights)
 
     # load optimal weights
     model.load_weights('/tmp/checkpoint.h5')
 
-    # make prediction on test set.
     probs       = model.predict(test_data)
     preds       = probs.argmax(axis = -1)  
     acc         = np.mean(preds == test_labels)
     print("Classification accuracy: %f " % (acc))
 
-    # plot the confusion matrices for both classifiers
-    '''names        = ['Non-Stressed', 'Stressed']
-    plt.figure(0)
-    plot_confusion_matrix(preds, test_labels, names, title = 'Confusion matrix for SSVEP')'''
+    # print performance
+    performance = compute_metrics(test_labels, preds)
+    print("Accuracy, Sensitivity, Specificyty:\n")
+    print(performance)
 
+    
+    # Plot Loss/Accuracy over time
+    # Create figure with secondary y-axis
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    # Add traces
+    fig.add_trace(go.Scatter( y=history.history['val_loss'], name="val_loss"), secondary_y=False)
+    fig.add_trace(go.Scatter( y=history.history['loss'], name="loss"), secondary_y=False)
+    fig.add_trace(go.Scatter( y=history.history['val_accuracy'], name="val accuracy"), secondary_y=True)
+    fig.add_trace(go.Scatter( y=history.history['accuracy'], name="accuracy"), secondary_y=True)
+    # Add figure title
+    fig.update_layout(title_text="Loss/Accuracy of SSVEP")
+    # Set x-axis title
+    fig.update_xaxes(title_text="Epoch")
+    # Set y-axes titles
+    fig.update_yaxes(title_text="Loss", secondary_y=False)
+    fig.update_yaxes(title_text="Accuracy", secondary_y=True)
+    fig.show()
+
+
+    # plot the confusion matrices for both classifiers
+    conf_matrix = metrics.confusion_matrix(test_labels,preds)
+    print(conf_matrix)
     return probs
 
 
-def EEGNet_TSGL_classification(train_data, test_data, val_data, train_labels, test_labels, val_labels, data_type, epoched = True):
+def TSGL_classification(train_data, test_data, val_data, train_labels, test_labels, val_labels, data_type, epoched = True):
 
     if epoched:
         if data_type == 'new_ica':
@@ -328,7 +441,7 @@ def EEGNet_TSGL_classification(train_data, test_data, val_data, train_labels, te
     class_weights = {0:1, 1:3}
 
     # fit the model
-    fittedModel = model.fit(train_data, train_labels, batch_size = 32, epochs = 300, 
+    history = model.fit(train_data, train_labels, batch_size = 32, epochs = 200, 
                             verbose = 2, validation_data=(val_data, val_labels),
                             callbacks=[checkpointer], class_weight = class_weights)
 
@@ -341,16 +454,111 @@ def EEGNet_TSGL_classification(train_data, test_data, val_data, train_labels, te
     acc         = np.mean(preds == test_labels)
     print("Classification accuracy: %f " % (acc))
 
+    # print performance
+    performance = compute_metrics(test_labels, preds)
+    print("Accuracy, Sensitivity, Specificyty:\n")
+    print(performance)
+
+    
+    # Plot Loss/Accuracy over time
+    # Create figure with secondary y-axis
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    # Add traces
+    fig.add_trace(go.Scatter( y=history.history['val_loss'], name="val_loss"), secondary_y=False)
+    fig.add_trace(go.Scatter( y=history.history['loss'], name="loss"), secondary_y=False)
+    fig.add_trace(go.Scatter( y=history.history['val_accuracy'], name="val accuracy"), secondary_y=True)
+    fig.add_trace(go.Scatter( y=history.history['accuracy'], name="accuracy"), secondary_y=True)
+    # Add figure title
+    fig.update_layout(title_text="Loss/Accuracy of TSGL")
+    # Set x-axis title
+    fig.update_xaxes(title_text="Epoch")
+    # Set y-axes titles
+    fig.update_yaxes(title_text="Loss", secondary_y=False)
+    fig.update_yaxes(title_text="Accuracy", secondary_y=True)
+    fig.show()
+
 
     # plot the confusion matrices for both classifiers
-    '''names        = ['Non-stressed', 'Stressed']
-    plt.figure(0)
-    plot_confusion_matrix(preds, test_labels, names, title = 'Confusion matrix for TSGL')'''
-
+    conf_matrix = metrics.confusion_matrix(test_labels,preds)
+    print(conf_matrix)
     return probs
 
+def kfold_TSGL_classification(data, labels, n_folds, data_type, epoched = True):
 
-def EEGNet_DeepConvNet_classification(train_data, test_data, val_data, train_labels, test_labels, val_labels, data_type, epoched = True):
+    if epoched:
+        if data_type == 'new_ica':
+            model = TSGLEEGNet(nb_classes = 2, Chans = v.NUM_CHANNELS, Samples = v.EPOCH_LENGTH*v.NEW_SFREQ, 
+                                dropoutRate = 0.5, kernLength = 128, F1 = 96, D = 1, F2 = 96, dropoutType = 'Dropout')
+        else:
+            model = TSGLEEGNet(nb_classes = 2, Chans = v.NUM_CHANNELS, Samples = v.EPOCH_LENGTH*v.SFREQ, 
+                                dropoutRate = 0.5, kernLength = 128, F1 = 96, D = 1, F2 = 96, dropoutType = 'Dropout')
+    else: #if not epoched
+        if data_type == 'new_ica':
+           model = TSGLEEGNet(nb_classes = 2, Chans = v.NUM_CHANNELS, Samples = v.NEW_NUM_SAMPLES, 
+                                dropoutRate = 0.5, kernLength = 128, F1 = 96, D = 1, F2 = 96, dropoutType = 'Dropout')
+        else:
+            model = TSGLEEGNet(nb_classes = 2, Chans = v.NUM_CHANNELS, Samples = v.NUM_SAMPLES, 
+                                 dropoutRate = 0.5, kernLength = 128, F1 = 96, D = 1, F2 = 96, dropoutType = 'Dropout')
+            
+    # compile the model and set the optimizers
+    model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', 
+                metrics = ['accuracy'])
+
+    # count number of parameters in the model
+    numParams    = model.count_params()    
+
+    # set a valid path for your system to record model checkpoints
+    checkpointer = ModelCheckpoint(filepath='/tmp/checkpoint.h5', verbose=1,
+                                save_best_only=True)
+
+    class_weights = {0:1, 1:3}
+
+     # Split into k-folds
+    skf = StratifiedKFold(n_splits=n_folds)
+    total_accuarcy = 0
+
+    for fold, (train_index, val_index) in enumerate(skf.split(data, labels)):
+        print(f"\nFold nr: {fold}")
+        train_data, train_labels = data[train_index], labels[train_index]
+        val_data, val_labels = data[val_index], labels[val_index]
+
+        history = model.fit(train_data, train_labels, batch_size = 8, epochs = 20, 
+                            verbose = 2, validation_data=(val_data, val_labels),
+                            callbacks=[checkpointer], class_weight = class_weights)
+
+        # load optimal weights
+        model.load_weights('/tmp/checkpoint.h5')
+
+        probs       = model.predict(val_data)
+        preds       = probs.argmax(axis = -1)  
+        acc         = np.mean(preds == val_labels)
+        total_accuarcy += acc
+        print("Classification accuracy: %f " % (acc))
+
+        print(classification_report(val_labels, preds))
+        
+        # Plot Loss/Accuracy over time
+        # Create figure with secondary y-axis
+        fig = make_subplots(specs=[[{"secondary_y": True}]])
+        # Add traces
+        fig.add_trace(go.Scatter( y=history.history['val_loss'], name="val_loss"), secondary_y=False)
+        fig.add_trace(go.Scatter( y=history.history['loss'], name="loss"), secondary_y=False)
+        fig.add_trace(go.Scatter( y=history.history['val_accuracy'], name="val accuracy"), secondary_y=True)
+        fig.add_trace(go.Scatter( y=history.history['accuracy'], name="accuracy"), secondary_y=True)
+        # Add figure title
+        fig.update_layout(title_text="Loss/Accuracy of EEGNet")
+        # Set x-axis title
+        fig.update_xaxes(title_text="Epoch")
+        # Set y-axes titles
+        fig.update_yaxes(title_text="Loss", secondary_y=False)
+        fig.update_yaxes(title_text="Accuracy", secondary_y=True)
+        fig.show()
+    
+    classification_acc = total_accuarcy/n_folds
+    print(f"Overall classification accuracy: {classification_acc}")
+
+
+def DeepConvNet_classification(train_data, test_data, val_data, train_labels, test_labels, val_labels, data_type, epoched = True):
     if epoched:
         if data_type == 'new_ica':
             model = DeepConvNet(nb_classes = 2, Chans = v.NUM_CHANNELS, Samples = v.EPOCH_LENGTH*v.NEW_SFREQ, 
@@ -380,7 +588,7 @@ def EEGNet_DeepConvNet_classification(train_data, test_data, val_data, train_lab
     class_weights = {0:1, 1:3}
 
     # fit the model
-    fittedModel = model.fit(train_data, train_labels, batch_size = 32, epochs = 300, 
+    history = model.fit(train_data, train_labels, batch_size = 32, epochs = 200, 
                             verbose = 2, validation_data=(val_data, val_labels),
                             callbacks=[checkpointer], class_weight = class_weights)
 
@@ -393,16 +601,110 @@ def EEGNet_DeepConvNet_classification(train_data, test_data, val_data, train_lab
     acc         = np.mean(preds == test_labels)
     print("Classification accuracy: %f " % (acc))
 
+    # print performance
+    performance = compute_metrics(test_labels, preds)
+    print("Accuracy, Sensitivity, Specificyty:\n")
+    print(performance)
+
+    
+    # Plot Loss/Accuracy over time
+    # Create figure with secondary y-axis
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    # Add traces
+    fig.add_trace(go.Scatter( y=history.history['val_loss'], name="val_loss"), secondary_y=False)
+    fig.add_trace(go.Scatter( y=history.history['loss'], name="loss"), secondary_y=False)
+    fig.add_trace(go.Scatter( y=history.history['val_accuracy'], name="val accuracy"), secondary_y=True)
+    fig.add_trace(go.Scatter( y=history.history['accuracy'], name="accuracy"), secondary_y=True)
+    # Add figure title
+    fig.update_layout(title_text="Loss/Accuracy of DeepConvNet")
+    # Set x-axis title
+    fig.update_xaxes(title_text="Epoch")
+    # Set y-axes titles
+    fig.update_yaxes(title_text="Loss", secondary_y=False)
+    fig.update_yaxes(title_text="Accuracy", secondary_y=True)
+    fig.show()
+
 
     # plot the confusion matrices for both classifiers
-    '''names        = ['Non-stressed', 'Stressed']
-    plt.figure(0)
-    plot_confusion_matrix(preds, test_labels, names, title = 'Confusion matrix for DeepConvNet')'''
-
+    conf_matrix = metrics.confusion_matrix(test_labels,preds)
+    print(conf_matrix)
     return probs
 
+def kfold_DeepConvNet_classification(data, labels, n_folds, data_type, epoched = True):
+    if epoched:
+        if data_type == 'new_ica':
+            model = DeepConvNet(nb_classes = 2, Chans = v.NUM_CHANNELS, Samples = v.EPOCH_LENGTH*v.NEW_SFREQ, 
+                                dropoutRate = 0.5)
+        else:
+            model = DeepConvNet(nb_classes = 2, Chans = v.NUM_CHANNELS, Samples = v.EPOCH_LENGTH*v.SFREQ, 
+                                dropoutRate = 0.5)
+    else: #if not epoched
+        if data_type == 'new_ica':
+           model = DeepConvNet(nb_classes = 2, Chans = v.NUM_CHANNELS, Samples = v.NEW_NUM_SAMPLES, 
+                                dropoutRate = 0.5)
+        else:
+            model = DeepConvNet(nb_classes = 2, Chans = v.NUM_CHANNELS, Samples = v.NUM_SAMPLES, 
+                                 dropoutRate = 0.5)
+            
+    # compile the model and set the optimizers
+    model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', 
+                metrics = ['accuracy'])
 
-def EEGNet_ShallowConvNet_classification(train_data, test_data, val_data, train_labels, test_labels, val_labels, data_type, epoched = True):
+    # count number of parameters in the model
+    numParams    = model.count_params()    
+
+    # set a valid path for your system to record model checkpoints
+    checkpointer = ModelCheckpoint(filepath='/tmp/checkpoint.h5', verbose=1,
+                                save_best_only=True)
+
+    class_weights = {0:1, 1:3}
+
+     # Split into k-folds
+    skf = StratifiedKFold(n_splits=n_folds)
+    total_accuarcy = 0
+
+    for fold, (train_index, val_index) in enumerate(skf.split(data, labels)):
+        print(f"\nFold nr: {fold}")
+        train_data, train_labels = data[train_index], labels[train_index]
+        val_data, val_labels = data[val_index], labels[val_index]
+
+        history = model.fit(train_data, train_labels, batch_size = 8, epochs = 20, 
+                            verbose = 2, validation_data=(val_data, val_labels),
+                            callbacks=[checkpointer], class_weight = class_weights)
+
+        # load optimal weights
+        model.load_weights('/tmp/checkpoint.h5')
+
+        probs       = model.predict(val_data)
+        preds       = probs.argmax(axis = -1)  
+        acc         = np.mean(preds == val_labels)
+        total_accuarcy += acc
+        print("Classification accuracy: %f " % (acc))
+
+        print(classification_report(val_labels, preds))
+        
+        # Plot Loss/Accuracy over time
+        # Create figure with secondary y-axis
+        fig = make_subplots(specs=[[{"secondary_y": True}]])
+        # Add traces
+        fig.add_trace(go.Scatter( y=history.history['val_loss'], name="val_loss"), secondary_y=False)
+        fig.add_trace(go.Scatter( y=history.history['loss'], name="loss"), secondary_y=False)
+        fig.add_trace(go.Scatter( y=history.history['val_accuracy'], name="val accuracy"), secondary_y=True)
+        fig.add_trace(go.Scatter( y=history.history['accuracy'], name="accuracy"), secondary_y=True)
+        # Add figure title
+        fig.update_layout(title_text="Loss/Accuracy of EEGNet")
+        # Set x-axis title
+        fig.update_xaxes(title_text="Epoch")
+        # Set y-axes titles
+        fig.update_yaxes(title_text="Loss", secondary_y=False)
+        fig.update_yaxes(title_text="Accuracy", secondary_y=True)
+        fig.show()
+    
+    classification_acc = total_accuarcy/n_folds
+    print(f"Overall classification accuracy: {classification_acc}")
+
+
+def ShallowConvNet_classification(train_data, test_data, val_data, train_labels, test_labels, val_labels, data_type, epoched = True):
 
     if epoched:
         if data_type == 'new_ica':
@@ -433,7 +735,7 @@ def EEGNet_ShallowConvNet_classification(train_data, test_data, val_data, train_
     class_weights = {0:1, 1:3}
 
     # fit the model
-    fittedModel = model.fit(train_data, train_labels, batch_size = 32, epochs = 300, 
+    history = model.fit(train_data, train_labels, batch_size = 32, epochs = 200, 
                             verbose = 2, validation_data=(val_data, val_labels),
                             callbacks=[checkpointer], class_weight = class_weights)
 
@@ -446,10 +748,106 @@ def EEGNet_ShallowConvNet_classification(train_data, test_data, val_data, train_
     acc         = np.mean(preds == test_labels)
     print("Classification accuracy: %f " % (acc))
 
+    # print performance
+    performance = compute_metrics(test_labels, preds)
+    print("Accuracy, Sensitivity, Specificyty:\n")
+    print(performance)
+
+    
+    # Plot Loss/Accuracy over time
+    # Create figure with secondary y-axis
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    # Add traces
+    fig.add_trace(go.Scatter( y=history.history['val_loss'], name="val_loss"), secondary_y=False)
+    fig.add_trace(go.Scatter( y=history.history['loss'], name="loss"), secondary_y=False)
+    fig.add_trace(go.Scatter( y=history.history['val_accuracy'], name="val accuracy"), secondary_y=True)
+    fig.add_trace(go.Scatter( y=history.history['accuracy'], name="accuracy"), secondary_y=True)
+    # Add figure title
+    fig.update_layout(title_text="Loss/Accuracy of ShallowConvNet")
+    # Set x-axis title
+    fig.update_xaxes(title_text="Epoch")
+    # Set y-axes titles
+    fig.update_yaxes(title_text="Loss", secondary_y=False)
+    fig.update_yaxes(title_text="Accuracy", secondary_y=True)
+    fig.show()
+
 
     # plot the confusion matrices for both classifiers
-    '''names        = ['Non-stressed', 'Stressed']
-    plt.figure(0)
-    plot_confusion_matrix(preds, test_labels, names, title = 'Confusion matrix for ShallowConvNet')'''
-
+    conf_matrix = metrics.confusion_matrix(test_labels,preds)
+    print(conf_matrix)
     return probs
+
+
+def kfold_ShallowConvNet_classification(data, labels, n_folds, data_type, epoched = True):
+    
+    if epoched:
+        if data_type == 'new_ica':
+            model = ShallowConvNet(nb_classes = 2, Chans = v.NUM_CHANNELS, Samples = v.EPOCH_LENGTH*v.NEW_SFREQ, 
+                                dropoutRate = 0.5)
+        else:
+            model = ShallowConvNet(nb_classes = 2, Chans = v.NUM_CHANNELS, Samples = v.EPOCH_LENGTH*v.SFREQ, 
+                                dropoutRate = 0.5)
+    else: #if not epoched
+        if data_type == 'new_ica':
+           model = ShallowConvNet(nb_classes = 2, Chans = v.NUM_CHANNELS, Samples = v.NEW_NUM_SAMPLES, 
+                                dropoutRate = 0.5)
+        else:
+            model = ShallowConvNet(nb_classes = 2, Chans = v.NUM_CHANNELS, Samples = v.NUM_SAMPLES, 
+                                 dropoutRate = 0.5)
+            
+    # compile the model and set the optimizers
+    model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', 
+                metrics = ['accuracy'])
+
+    # count number of parameters in the model
+    numParams    = model.count_params()    
+
+    # set a valid path for your system to record model checkpoints
+    checkpointer = ModelCheckpoint(filepath='/tmp/checkpoint.h5', verbose=1,
+                                save_best_only=True)
+
+    class_weights = {0:1, 1:3}
+
+     # Split into k-folds
+    skf = StratifiedKFold(n_splits=n_folds)
+    total_accuarcy = 0
+
+    for fold, (train_index, val_index) in enumerate(skf.split(data, labels)):
+        print(f"\nFold nr: {fold}")
+        train_data, train_labels = data[train_index], labels[train_index]
+        val_data, val_labels = data[val_index], labels[val_index]
+
+        history = model.fit(train_data, train_labels, batch_size = 8, epochs = 20, 
+                            verbose = 2, validation_data=(val_data, val_labels),
+                            callbacks=[checkpointer], class_weight = class_weights)
+
+        # load optimal weights
+        model.load_weights('/tmp/checkpoint.h5')
+
+        probs       = model.predict(val_data)
+        preds       = probs.argmax(axis = -1)  
+        acc         = np.mean(preds == val_labels)
+        total_accuarcy += acc
+        print("Classification accuracy: %f " % (acc))
+
+        print(classification_report(val_labels, preds))
+        
+        # Plot Loss/Accuracy over time
+        # Create figure with secondary y-axis
+        fig = make_subplots(specs=[[{"secondary_y": True}]])
+        # Add traces
+        fig.add_trace(go.Scatter( y=history.history['val_loss'], name="val_loss"), secondary_y=False)
+        fig.add_trace(go.Scatter( y=history.history['loss'], name="loss"), secondary_y=False)
+        fig.add_trace(go.Scatter( y=history.history['val_accuracy'], name="val accuracy"), secondary_y=True)
+        fig.add_trace(go.Scatter( y=history.history['accuracy'], name="accuracy"), secondary_y=True)
+        # Add figure title
+        fig.update_layout(title_text="Loss/Accuracy of EEGNet")
+        # Set x-axis title
+        fig.update_xaxes(title_text="Epoch")
+        # Set y-axes titles
+        fig.update_yaxes(title_text="Loss", secondary_y=False)
+        fig.update_yaxes(title_text="Accuracy", secondary_y=True)
+        fig.show()
+    
+    classification_acc = total_accuarcy/n_folds
+    print(f"Overall classification accuracy: {classification_acc}")
