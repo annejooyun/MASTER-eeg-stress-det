@@ -260,7 +260,6 @@ def EEGNet_classification(train_data, test_data, val_data, train_labels, test_la
     print(conf_matrix)
     return probs
 
-
 def kfold_EEGNet_classification(data, labels, n_folds, data_type, epoched = True):
 
     if epoched:
@@ -325,7 +324,7 @@ def kfold_EEGNet_classification(data, labels, n_folds, data_type, epoched = True
         fig.add_trace(go.Scatter( y=history.history['val_accuracy'], name="val accuracy"), secondary_y=True)
         fig.add_trace(go.Scatter( y=history.history['accuracy'], name="accuracy"), secondary_y=True)
         # Add figure title
-        fig.update_layout(title_text="Loss/Accuracy of EEGNet")
+        fig.update_layout(title_text="Loss/Accuracy of k-folds EEGNet")
         # Set x-axis title
         fig.update_xaxes(title_text="Epoch")
         # Set y-axes titles
@@ -335,79 +334,6 @@ def kfold_EEGNet_classification(data, labels, n_folds, data_type, epoched = True
     
     classification_acc = total_accuarcy/n_folds
     print(f"Overall classification accuracy: {classification_acc}")
-
-      
-    if epoched:
-        if data_type == 'new_ica':
-            model = EEGNet_SSVEP(nb_classes = 2, Chans = v.NUM_CHANNELS, Samples = v.EPOCH_LENGTH*v.NEW_SFREQ, 
-                                dropoutRate = 0.5, kernLength = 128, F1 = 96, D = 1, F2 = 96, dropoutType = 'Dropout')
-        else:
-            model = EEGNet_SSVEP(nb_classes = 2, Chans = v.NUM_CHANNELS, Samples = v.EPOCH_LENGTH*v.SFREQ, 
-                                dropoutRate = 0.5, kernLength = 128, F1 = 96, D = 1, F2 = 96, dropoutType = 'Dropout')
-    else: #if not epoched
-        if data_type == 'new_ica':
-           model = EEGNet_SSVEP(nb_classes = 2, Chans = v.NUM_CHANNELS, Samples = v.NEW_NUM_SAMPLES, 
-                                dropoutRate = 0.5, kernLength = 128, F1 = 96, D = 1, F2 = 96, dropoutType = 'Dropout')
-        else:
-            model = EEGNet_SSVEP(nb_classes = 2, Chans = v.NUM_CHANNELS, Samples = v.NUM_SAMPLES, 
-                                 dropoutRate = 0.5, kernLength = 128, F1 = 96, D = 1, F2 = 96, dropoutType = 'Dropout')
-
-
-
-    # compile the model and set the optimizers
-    model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', 
-                metrics = ['accuracy'])
-
-    # count number of parameters in the model
-    numParams    = model.count_params()    
-
-    # set a valid path for your system to record model checkpoints
-    checkpointer = ModelCheckpoint(filepath='/tmp/checkpoint.h5', verbose=1,
-                                save_best_only=True)
-    
-    class_weights = {0:1, 1:3}
-
-    # fit the model.
-    history = model.fit(train_data, train_labels, batch_size = 32, epochs = 200, 
-                            verbose = 2, validation_data=(val_data, val_labels),
-                            callbacks=[checkpointer], class_weight = class_weights)
-
-    # load optimal weights
-    model.load_weights('/tmp/checkpoint.h5')
-
-    probs       = model.predict(test_data)
-    preds       = probs.argmax(axis = -1)  
-    acc         = np.mean(preds == test_labels)
-    print("Classification accuracy: %f " % (acc))
-
-    # print performance
-    performance = compute_metrics(test_labels, preds)
-    print("Accuracy, Sensitivity, Specificyty:\n")
-    print(performance)
-
-    
-    # Plot Loss/Accuracy over time
-    # Create figure with secondary y-axis
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
-    # Add traces
-    fig.add_trace(go.Scatter( y=history.history['val_loss'], name="val_loss"), secondary_y=False)
-    fig.add_trace(go.Scatter( y=history.history['loss'], name="loss"), secondary_y=False)
-    fig.add_trace(go.Scatter( y=history.history['val_accuracy'], name="val accuracy"), secondary_y=True)
-    fig.add_trace(go.Scatter( y=history.history['accuracy'], name="accuracy"), secondary_y=True)
-    # Add figure title
-    fig.update_layout(title_text="Loss/Accuracy of SSVEP")
-    # Set x-axis title
-    fig.update_xaxes(title_text="Epoch")
-    # Set y-axes titles
-    fig.update_yaxes(title_text="Loss", secondary_y=False)
-    fig.update_yaxes(title_text="Accuracy", secondary_y=True)
-    fig.show()
-
-
-    # plot the confusion matrices for both classifiers
-    conf_matrix = metrics.confusion_matrix(test_labels,preds)
-    print(conf_matrix)
-    return probs
 
 
 def TSGL_classification(train_data, test_data, val_data, train_labels, test_labels, val_labels, data_type, epoched = True):
@@ -546,7 +472,7 @@ def kfold_TSGL_classification(data, labels, n_folds, data_type, epoched = True):
         fig.add_trace(go.Scatter( y=history.history['val_accuracy'], name="val accuracy"), secondary_y=True)
         fig.add_trace(go.Scatter( y=history.history['accuracy'], name="accuracy"), secondary_y=True)
         # Add figure title
-        fig.update_layout(title_text="Loss/Accuracy of EEGNet")
+        fig.update_layout(title_text="Loss/Accuracy of k-fold TSGLs")
         # Set x-axis title
         fig.update_xaxes(title_text="Epoch")
         # Set y-axes titles
@@ -692,7 +618,7 @@ def kfold_DeepConvNet_classification(data, labels, n_folds, data_type, epoched =
         fig.add_trace(go.Scatter( y=history.history['val_accuracy'], name="val accuracy"), secondary_y=True)
         fig.add_trace(go.Scatter( y=history.history['accuracy'], name="accuracy"), secondary_y=True)
         # Add figure title
-        fig.update_layout(title_text="Loss/Accuracy of EEGNet")
+        fig.update_layout(title_text="Loss/Accuracy of kfold DeepConvNet")
         # Set x-axis title
         fig.update_xaxes(title_text="Epoch")
         # Set y-axes titles
@@ -777,7 +703,6 @@ def ShallowConvNet_classification(train_data, test_data, val_data, train_labels,
     print(conf_matrix)
     return probs
 
-
 def kfold_ShallowConvNet_classification(data, labels, n_folds, data_type, epoched = True):
     
     if epoched:
@@ -841,7 +766,7 @@ def kfold_ShallowConvNet_classification(data, labels, n_folds, data_type, epoche
         fig.add_trace(go.Scatter( y=history.history['val_accuracy'], name="val accuracy"), secondary_y=True)
         fig.add_trace(go.Scatter( y=history.history['accuracy'], name="accuracy"), secondary_y=True)
         # Add figure title
-        fig.update_layout(title_text="Loss/Accuracy of EEGNet")
+        fig.update_layout(title_text="Loss/Accuracy of k-fold ShallowConvNet")
         # Set x-axis title
         fig.update_xaxes(title_text="Epoch")
         # Set y-axes titles
