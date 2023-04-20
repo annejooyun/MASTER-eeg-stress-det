@@ -30,3 +30,20 @@ _____Shallow_____
 [[2075  325]
  [1062  138]]
 [61.47 66.15 29.81]
+
+
+
+
+Stratified k-fold
+
+Raw data, 20 epochs
+EEGNet Overall classification accuracy: 62.01%
+TSGL Overall classification accuracy: 61.53%
+Deep Overall classification accuracy: 57.11%
+Shallow Overall classification accuracy: 57.22%
+
+Init data, 20 epochs
+EEGNet Overall classification accuracy: 61.59%
+TSGL Overall classification accuracy: %
+Deep Overall classification accuracy: %
+Shallow Overall classification accuracy: %

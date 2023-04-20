@@ -39,7 +39,7 @@ def load_data(data_type, label_type, epoched = False, binary = True):
         y_dict = y_dict_.copy()
 
     # Splits dataset into train, test, validation
-    train_data_dict, test_data_dict, val_data_dict, train_labels_dict, test_labels_dict, val_labels_dict = split_dataset(x_dict, y_dict)
+    train_data_dict, test_data_dict, val_data_dict, train_labels_dict, test_labels_dict, val_labels_dict = split_dataset(x_dict, y_dict, kfold = False)
     print(f"\nLength of train data set: {len(train_data_dict)}")
     print(f"Length of validation data set: {len(val_data_dict)}")
     print(f"Length of test data set: {len(test_data_dict)}")
@@ -104,17 +104,24 @@ def load_kfold_data(data_type, label_type, epoched = False, binary = True):
         x_dict = x_dict_.copy()
         y_dict = y_dict_.copy()
 
-    
-    data_arr = dict_to_arr(x_dict, data_type)
-    labels_arr = np.reshape(np.array(list(y_dict.values())), (len(data_arr),1))
+    train_data_dict, test_data_dict, train_labels_dict, test_labels_dict = split_dataset(x_dict, y_dict, kfold = True)
+    train_data_arr = dict_to_arr(train_data_dict, data_type)
+    test_data_arr = dict_to_arr(test_data_dict, data_type)
+
+    train_labels_arr = np.reshape(np.array(list(train_labels_dict.values())), (len(train_data_arr),1))
+    test_labels_arr = np.reshape(np.array(list(test_labels_dict.values())), (len(test_data_arr),1))
     
     if epoched:
         if data_type == 'new_ica':
-            data, labels = epoch_data_and_labels(data_arr, labels_arr, sfreq=v.NEW_SFREQ)
+            train_data, train_labels = epoch_data_and_labels(train_data_arr, train_labels_arr, sfreq=v.NEW_SFREQ)
+            test_data, test_labels = epoch_data_and_labels(test_data_arr, test_labels_arr, sfreq=v.NEW_SFREQ)
         else:
-            data, labels = epoch_data_and_labels(data_arr, labels_arr, sfreq=v.SFREQ)  
+            train_data, train_labels = epoch_data_and_labels(train_data_arr, train_labels_arr, sfreq=v.SFREQ)  
+            test_data, test_labels = epoch_data_and_labels(test_data_arr, test_labels_arr, sfreq=v.SFREQ)  
 
-    print(f"\nShape of train data set: {data.shape}")
-    print(f"Shape of train labels set: {labels.shape}")
+    print(f"\nShape of train data set: {train_data.shape}")
+    print(f"Shape of train labels set: {train_labels.shape}")
+    print(f"Shape of test data set: {test_data.shape}")
+    print(f"Shape of test labels set: {test_labels.shape}")
 
-    return data, labels
+    return train_data, test_data, train_labels, test_labels

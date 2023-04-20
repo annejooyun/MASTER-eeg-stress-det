@@ -260,7 +260,7 @@ def EEGNet_classification(train_data, test_data, val_data, train_labels, test_la
     print(conf_matrix)
     return probs
 
-def kfold_EEGNet_classification(data, labels, n_folds, data_type, epoched = True):
+def kfold_EEGNet_classification(train_data, test_data, train_labels, test_labels, n_folds, data_type, epoched = True):
 
     if epoched:
         if data_type == 'new_ica':
@@ -293,27 +293,27 @@ def kfold_EEGNet_classification(data, labels, n_folds, data_type, epoched = True
 
     # Split into k-folds
     skf = StratifiedKFold(n_splits=n_folds)
-    total_accuarcy = 0
+    total_accuracy = 0
 
-    for fold, (train_index, val_index) in enumerate(skf.split(data, labels)):
-        print(f"\nFold nr: {fold}")
-        train_data, train_labels = data[train_index], labels[train_index]
-        val_data, val_labels = data[val_index], labels[val_index]
+    for fold, (train_index, val_index) in enumerate(skf.split(train_data, train_labels)):
+        print(f"\nFold nr: {fold+1}")
+        train_data_fold, train_labels_fold = train_data[train_index], train_labels[train_index]
+        val_data_fold, val_labels_fold = train_data[val_index], train_labels[val_index]
 
-        history = model.fit(train_data, train_labels, batch_size = 8, epochs = 20, 
-                            verbose = 2, validation_data=(val_data, val_labels),
+        history = model.fit(train_data_fold, train_labels_fold, batch_size = 8, epochs = 20, 
+                            verbose = 2, validation_data=(val_data_fold, val_labels_fold),
                             callbacks=[checkpointer], class_weight = class_weights)
 
         # load optimal weights
         model.load_weights('/tmp/checkpoint.h5')
 
-        probs       = model.predict(val_data)
+        probs       = model.predict(test_data)
         preds       = probs.argmax(axis = -1)  
-        acc         = np.mean(preds == val_labels)
-        total_accuarcy += acc
+        acc         = np.mean(preds == test_labels)
+        total_accuracy += acc
         print("Classification accuracy: %f " % (acc))
 
-        print(classification_report(val_labels, preds))
+        print(classification_report(test_labels, preds))
         
         # Plot Loss/Accuracy over time
         # Create figure with secondary y-axis
@@ -332,8 +332,8 @@ def kfold_EEGNet_classification(data, labels, n_folds, data_type, epoched = True
         fig.update_yaxes(title_text="Accuracy", secondary_y=True)
         fig.show()
     
-    classification_acc = total_accuarcy/n_folds
-    print(f"Overall classification accuracy: {classification_acc}")
+    classification_acc = total_accuracy/n_folds
+    print(f"EEGNet overall classification accuracy: {classification_acc}")
 
 
 def TSGL_classification(train_data, test_data, val_data, train_labels, test_labels, val_labels, data_type, epoched = True):
@@ -409,7 +409,7 @@ def TSGL_classification(train_data, test_data, val_data, train_labels, test_labe
     print(conf_matrix)
     return probs
 
-def kfold_TSGL_classification(data, labels, n_folds, data_type, epoched = True):
+def kfold_TSGL_classification(train_data, test_data, train_labels, test_labels, n_folds, data_type, epoched = True):
 
     if epoched:
         if data_type == 'new_ica':
@@ -441,27 +441,27 @@ def kfold_TSGL_classification(data, labels, n_folds, data_type, epoched = True):
 
      # Split into k-folds
     skf = StratifiedKFold(n_splits=n_folds)
-    total_accuarcy = 0
+    total_accuracy = 0
 
-    for fold, (train_index, val_index) in enumerate(skf.split(data, labels)):
-        print(f"\nFold nr: {fold}")
-        train_data, train_labels = data[train_index], labels[train_index]
-        val_data, val_labels = data[val_index], labels[val_index]
+    for fold, (train_index, val_index) in enumerate(skf.split(train_data, train_labels)):
+        print(f"\nFold nr: {fold+1}")
+        train_data_fold, train_labels_fold = train_data[train_index], train_labels[train_index]
+        val_data_fold, val_labels_fold = train_data[val_index], train_labels[val_index]
 
-        history = model.fit(train_data, train_labels, batch_size = 8, epochs = 20, 
-                            verbose = 2, validation_data=(val_data, val_labels),
+        history = model.fit(train_data_fold, train_labels_fold, batch_size = 8, epochs = 20, 
+                            verbose = 2, validation_data=(val_data_fold, val_labels_fold),
                             callbacks=[checkpointer], class_weight = class_weights)
 
         # load optimal weights
         model.load_weights('/tmp/checkpoint.h5')
 
-        probs       = model.predict(val_data)
+        probs       = model.predict(test_data)
         preds       = probs.argmax(axis = -1)  
-        acc         = np.mean(preds == val_labels)
-        total_accuarcy += acc
+        acc         = np.mean(preds == test_labels)
+        total_accuracy += acc
         print("Classification accuracy: %f " % (acc))
 
-        print(classification_report(val_labels, preds))
+        print(classification_report(test_labels, preds))
         
         # Plot Loss/Accuracy over time
         # Create figure with secondary y-axis
@@ -480,8 +480,8 @@ def kfold_TSGL_classification(data, labels, n_folds, data_type, epoched = True):
         fig.update_yaxes(title_text="Accuracy", secondary_y=True)
         fig.show()
     
-    classification_acc = total_accuarcy/n_folds
-    print(f"Overall classification accuracy: {classification_acc}")
+    classification_acc = total_accuracy/n_folds
+    print(f"TSGL overall classification accuracy: {classification_acc}")
 
 
 def DeepConvNet_classification(train_data, test_data, val_data, train_labels, test_labels, val_labels, data_type, epoched = True):
@@ -556,7 +556,7 @@ def DeepConvNet_classification(train_data, test_data, val_data, train_labels, te
     print(conf_matrix)
     return probs
 
-def kfold_DeepConvNet_classification(data, labels, n_folds, data_type, epoched = True):
+def kfold_DeepConvNet_classification(train_data, test_data, train_labels, test_labels, n_folds, data_type, epoched = True):
     if epoched:
         if data_type == 'new_ica':
             model = DeepConvNet(nb_classes = 2, Chans = v.NUM_CHANNELS, Samples = v.EPOCH_LENGTH*v.NEW_SFREQ, 
@@ -587,27 +587,27 @@ def kfold_DeepConvNet_classification(data, labels, n_folds, data_type, epoched =
 
      # Split into k-folds
     skf = StratifiedKFold(n_splits=n_folds)
-    total_accuarcy = 0
+    total_accuracy = 0
 
-    for fold, (train_index, val_index) in enumerate(skf.split(data, labels)):
-        print(f"\nFold nr: {fold}")
-        train_data, train_labels = data[train_index], labels[train_index]
-        val_data, val_labels = data[val_index], labels[val_index]
+    for fold, (train_index, val_index) in enumerate(skf.split(train_data, train_labels)):
+        print(f"\nFold nr: {fold+1}")
+        train_data_fold, train_labels_fold = train_data[train_index], train_labels[train_index]
+        val_data_fold, val_labels_fold = train_data[val_index], train_labels[val_index]
 
-        history = model.fit(train_data, train_labels, batch_size = 8, epochs = 20, 
-                            verbose = 2, validation_data=(val_data, val_labels),
+        history = model.fit(train_data_fold, train_labels_fold, batch_size = 8, epochs = 20, 
+                            verbose = 2, validation_data=(val_data_fold, val_labels_fold),
                             callbacks=[checkpointer], class_weight = class_weights)
 
         # load optimal weights
         model.load_weights('/tmp/checkpoint.h5')
 
-        probs       = model.predict(val_data)
+        probs       = model.predict(test_data)
         preds       = probs.argmax(axis = -1)  
-        acc         = np.mean(preds == val_labels)
-        total_accuarcy += acc
+        acc         = np.mean(preds == test_labels)
+        total_accuracy += acc
         print("Classification accuracy: %f " % (acc))
 
-        print(classification_report(val_labels, preds))
+        print(classification_report(test_labels, preds))
         
         # Plot Loss/Accuracy over time
         # Create figure with secondary y-axis
@@ -626,8 +626,8 @@ def kfold_DeepConvNet_classification(data, labels, n_folds, data_type, epoched =
         fig.update_yaxes(title_text="Accuracy", secondary_y=True)
         fig.show()
     
-    classification_acc = total_accuarcy/n_folds
-    print(f"Overall classification accuracy: {classification_acc}")
+    classification_acc = total_accuracy/n_folds
+    print(f"Deep overall classification accuracy: {classification_acc}")
 
 
 def ShallowConvNet_classification(train_data, test_data, val_data, train_labels, test_labels, val_labels, data_type, epoched = True):
@@ -703,7 +703,7 @@ def ShallowConvNet_classification(train_data, test_data, val_data, train_labels,
     print(conf_matrix)
     return probs
 
-def kfold_ShallowConvNet_classification(data, labels, n_folds, data_type, epoched = True):
+def kfold_ShallowConvNet_classification(train_data, test_data, train_labels, test_labels, n_folds, data_type, epoched = True):
     
     if epoched:
         if data_type == 'new_ica':
@@ -735,27 +735,27 @@ def kfold_ShallowConvNet_classification(data, labels, n_folds, data_type, epoche
 
      # Split into k-folds
     skf = StratifiedKFold(n_splits=n_folds)
-    total_accuarcy = 0
+    total_accuracy = 0
 
-    for fold, (train_index, val_index) in enumerate(skf.split(data, labels)):
-        print(f"\nFold nr: {fold}")
-        train_data, train_labels = data[train_index], labels[train_index]
-        val_data, val_labels = data[val_index], labels[val_index]
+    for fold, (train_index, val_index) in enumerate(skf.split(train_data, train_labels)):
+        print(f"\nFold nr: {fold+1}")
+        train_data_fold, train_labels_fold = train_data[train_index], train_labels[train_index]
+        val_data_fold, val_labels_fold = train_data[val_index], train_labels[val_index]
 
-        history = model.fit(train_data, train_labels, batch_size = 8, epochs = 20, 
-                            verbose = 2, validation_data=(val_data, val_labels),
+        history = model.fit(train_data_fold, train_labels_fold, batch_size = 8, epochs = 20, 
+                            verbose = 2, validation_data=(val_data_fold, val_labels_fold),
                             callbacks=[checkpointer], class_weight = class_weights)
 
         # load optimal weights
         model.load_weights('/tmp/checkpoint.h5')
 
-        probs       = model.predict(val_data)
+        probs       = model.predict(test_data)
         preds       = probs.argmax(axis = -1)  
-        acc         = np.mean(preds == val_labels)
-        total_accuarcy += acc
+        acc         = np.mean(preds == test_labels)
+        total_accuracy += acc
         print("Classification accuracy: %f " % (acc))
 
-        print(classification_report(val_labels, preds))
+        print(classification_report(test_labels, preds))
         
         # Plot Loss/Accuracy over time
         # Create figure with secondary y-axis
@@ -774,5 +774,5 @@ def kfold_ShallowConvNet_classification(data, labels, n_folds, data_type, epoche
         fig.update_yaxes(title_text="Accuracy", secondary_y=True)
         fig.show()
     
-    classification_acc = total_accuarcy/n_folds
-    print(f"Overall classification accuracy: {classification_acc}")
+    classification_acc = total_accuracy/n_folds
+    print(f"Shallow overall classification accuracy: {classification_acc}")

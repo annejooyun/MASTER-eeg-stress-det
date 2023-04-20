@@ -182,15 +182,20 @@ def kfold_split(x_epochs, y_epochs, n_splits=5, shuffle=True, random_state=None)
     return train_epochs, test_epochs, train_labels, test_labels
 
 
-def split_dataset(x_dict, y_dict):
+def split_dataset(x_dict, y_dict, kfold = True):
     """
-    Splits the dataset into training-, validation- and test-sets.
+    Splits the dataset into training-, validation- (not for kfold) and test-sets.
     Since we use a intra-personal model, the dataset should be split along subjects, not recordings.
     This way it is ensured that one subjects recordings are uniquely in one of the data sets.
 
     In order to ensure balanced splits, a new "mean label" is calculated for each subject.
     The mean label list is later used as the "stratify" parameter when splitting the dataset.
+    
+    For kfold:
+    - Training consists of 80% of the participants
+    - Test consists of 20% of the participants
 
+    Else:
     - Training consists of 60% of the participants
     - Validation consists of 20% of the participants
     - Test consists of 20% of the participants
@@ -222,16 +227,28 @@ def split_dataset(x_dict, y_dict):
             mean_label = sum_label/num_recordings
             mean_labels_list.append(round(mean_label,0))
 
-    #Dividing subjects between the three datasets
-    subjects, subjects_test, mean_labels, mean_labels_test = train_test_split(subject_list, mean_labels_list, test_size= 0.2, random_state=42, stratify = mean_labels_list)
-    subjects_train, subjects_val, mean_labels_train, mean_labels_val = train_test_split(subjects, mean_labels, test_size=0.25, random_state=42, stratify = mean_labels)
     
-    #Reconstructing train-,validation- and test-sets with corresponding data
-    train_data_dict, train_labels_dict = reconstruct_dicts(subjects_train, x_dict, y_dict)
-    test_data_dict, test_labels_dict = reconstruct_dicts(subjects_test, x_dict, y_dict)
-    val_data_dict, val_labels_dict = reconstruct_dicts(subjects_val, x_dict, y_dict)
+    if kfold:
+        #Dividing subjects between two datasets, as the training set will be used in kfold validation
+        subjects_train, subjects_test, mean_labels_train, mean_labels_test = train_test_split(subject_list, mean_labels_list, test_size= 0.2, random_state=42, stratify = mean_labels_list)
+        
+        #Reconstructing train- and test-sets with corresponding data
+        train_data_dict, train_labels_dict = reconstruct_dicts(subjects_train, x_dict, y_dict)
+        test_data_dict, test_labels_dict = reconstruct_dicts(subjects_test, x_dict, y_dict)
 
-    return train_data_dict, test_data_dict, val_data_dict, train_labels_dict, test_labels_dict, val_labels_dict
+        return train_data_dict, test_data_dict, train_labels_dict, test_labels_dict
+
+    else:
+        #Dividing subjects between the three datasets
+        subjects, subjects_test, mean_labels, mean_labels_test = train_test_split(subject_list, mean_labels_list, test_size= 0.2, random_state=42, stratify = mean_labels_list)
+        subjects_train, subjects_val, mean_labels_train, mean_labels_val = train_test_split(subjects, mean_labels, test_size=0.25, random_state=42, stratify = mean_labels)
+        
+        #Reconstructing train-,validation- and test-sets with corresponding data
+        train_data_dict, train_labels_dict = reconstruct_dicts(subjects_train, x_dict, y_dict)
+        test_data_dict, test_labels_dict = reconstruct_dicts(subjects_test, x_dict, y_dict)
+        val_data_dict, val_labels_dict = reconstruct_dicts(subjects_val, x_dict, y_dict)
+
+        return train_data_dict, test_data_dict, val_data_dict, train_labels_dict, test_labels_dict, val_labels_dict
 
 
 
