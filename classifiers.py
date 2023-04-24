@@ -206,7 +206,7 @@ def EEGNet_classification(train_data, test_data, val_data, train_labels, test_la
     '''fittedModel = model.fit(train_data, train_labels, batch_size = 64, epochs = 300, 
                             verbose = 2, validation_data=(val_data, val_labels),
                             callbacks=[checkpointer], class_weight = class_weights)'''
-    history = model.fit(train_data, train_labels, batch_size = 32, epochs = 200, 
+    history = model.fit(train_data, train_labels, batch_size = None, epochs = 30, 
                             verbose = 2, validation_data=(val_data, val_labels),
                             callbacks=[checkpointer], class_weight = class_weights)
 
@@ -300,7 +300,7 @@ def kfold_EEGNet_classification(train_data, test_data, train_labels, test_labels
         train_data_fold, train_labels_fold = train_data[train_index], train_labels[train_index]
         val_data_fold, val_labels_fold = train_data[val_index], train_labels[val_index]
 
-        history = model.fit(train_data_fold, train_labels_fold, batch_size = 16, epochs = 100, 
+        history = model.fit(train_data_fold, train_labels_fold, batch_size = None, epochs = 30, 
                             verbose = 2, validation_data=(val_data_fold, val_labels_fold),
                             callbacks=[checkpointer], class_weight = class_weights)
 
@@ -367,7 +367,7 @@ def TSGL_classification(train_data, test_data, val_data, train_labels, test_labe
     class_weights = {0:1, 1:3}
 
     # fit the model
-    history = model.fit(train_data, train_labels, batch_size = 32, epochs = 200, 
+    history = model.fit(train_data, train_labels, batch_size = None, epochs = 30, 
                             verbose = 2, validation_data=(val_data, val_labels),
                             callbacks=[checkpointer], class_weight = class_weights)
 
@@ -448,7 +448,7 @@ def kfold_TSGL_classification(train_data, test_data, train_labels, test_labels, 
         train_data_fold, train_labels_fold = train_data[train_index], train_labels[train_index]
         val_data_fold, val_labels_fold = train_data[val_index], train_labels[val_index]
 
-        history = model.fit(train_data_fold, train_labels_fold, batch_size = 16, epochs = 100, 
+        history = model.fit(train_data_fold, train_labels_fold, batch_size = None, epochs = 30, 
                             verbose = 2, validation_data=(val_data_fold, val_labels_fold),
                             callbacks=[checkpointer], class_weight = class_weights)
 
@@ -514,7 +514,7 @@ def DeepConvNet_classification(train_data, test_data, val_data, train_labels, te
     class_weights = {0:1, 1:3}
 
     # fit the model
-    history = model.fit(train_data, train_labels, batch_size = 32, epochs = 200, 
+    history = model.fit(train_data, train_labels, batch_size = None, epochs = 30, 
                             verbose = 2, validation_data=(val_data, val_labels),
                             callbacks=[checkpointer], class_weight = class_weights)
 
@@ -594,7 +594,7 @@ def kfold_DeepConvNet_classification(train_data, test_data, train_labels, test_l
         train_data_fold, train_labels_fold = train_data[train_index], train_labels[train_index]
         val_data_fold, val_labels_fold = train_data[val_index], train_labels[val_index]
 
-        history = model.fit(train_data_fold, train_labels_fold, batch_size = 16, epochs = 100, 
+        history = model.fit(train_data_fold, train_labels_fold, batch_size = None, epochs = 30, 
                             verbose = 2, validation_data=(val_data_fold, val_labels_fold),
                             callbacks=[checkpointer], class_weight = class_weights)
 
@@ -661,7 +661,7 @@ def ShallowConvNet_classification(train_data, test_data, val_data, train_labels,
     class_weights = {0:1, 1:3}
 
     # fit the model
-    history = model.fit(train_data, train_labels, batch_size = 32, epochs = 200, 
+    history = model.fit(train_data, train_labels, batch_size = None, epochs = 30, 
                             verbose = 2, validation_data=(val_data, val_labels),
                             callbacks=[checkpointer], class_weight = class_weights)
 
@@ -742,7 +742,7 @@ def kfold_ShallowConvNet_classification(train_data, test_data, train_labels, tes
         train_data_fold, train_labels_fold = train_data[train_index], train_labels[train_index]
         val_data_fold, val_labels_fold = train_data[val_index], train_labels[val_index]
 
-        history = model.fit(train_data_fold, train_labels_fold, batch_size = 16, epochs = 100, 
+        history = model.fit(train_data_fold, train_labels_fold, batch_size = None, epochs = 30, 
                             verbose = 2, validation_data=(val_data_fold, val_labels_fold),
                             callbacks=[checkpointer], class_weight = class_weights)
 

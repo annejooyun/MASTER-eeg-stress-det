@@ -59,8 +59,9 @@ from regularizers import l_1, l_2, l1_l2, l2_1, tsc, sgl, tsgl, TSG
 
 
 def EEGNet(nb_classes=2, Chans = 64, Samples = 128, 
-             dropoutRate = 0.5, kernLength = 64, F1 = 8, 
+             dropoutRate = 0.5, kernLength = 125, F1 = 8, 
              D = 2, F2 = 16, norm_rate = 0.25, dropoutType = 'Dropout'):
+    
     """ Keras Implementation of EEGNet
     http://iopscience.iop.org/article/10.1088/1741-2552/aace8c/meta
     Note that this implements the newest version of EEGNet and NOT the earlier
@@ -278,7 +279,7 @@ def ShallowConvNet(nb_classes, Chans = 64, Samples = 128, dropoutRate = 0.5):
 
 def TSGLEEGNet(nb_classes=2, Chans = 64, Samples = 128,
                dropoutRate=0.5,
-               kernLength=64,
+               kernLength=125,
                F1=9,
                D=4,
                F2=32,
