@@ -300,7 +300,7 @@ def kfold_EEGNet_classification(train_data, test_data, train_labels, test_labels
         train_data_fold, train_labels_fold = train_data[train_index], train_labels[train_index]
         val_data_fold, val_labels_fold = train_data[val_index], train_labels[val_index]
 
-        history = model.fit(train_data_fold, train_labels_fold, batch_size = 8, epochs = 20, 
+        history = model.fit(train_data_fold, train_labels_fold, batch_size = 16, epochs = 100, 
                             verbose = 2, validation_data=(val_data_fold, val_labels_fold),
                             callbacks=[checkpointer], class_weight = class_weights)
 
@@ -448,7 +448,7 @@ def kfold_TSGL_classification(train_data, test_data, train_labels, test_labels, 
         train_data_fold, train_labels_fold = train_data[train_index], train_labels[train_index]
         val_data_fold, val_labels_fold = train_data[val_index], train_labels[val_index]
 
-        history = model.fit(train_data_fold, train_labels_fold, batch_size = 8, epochs = 20, 
+        history = model.fit(train_data_fold, train_labels_fold, batch_size = 16, epochs = 100, 
                             verbose = 2, validation_data=(val_data_fold, val_labels_fold),
                             callbacks=[checkpointer], class_weight = class_weights)
 
@@ -594,7 +594,7 @@ def kfold_DeepConvNet_classification(train_data, test_data, train_labels, test_l
         train_data_fold, train_labels_fold = train_data[train_index], train_labels[train_index]
         val_data_fold, val_labels_fold = train_data[val_index], train_labels[val_index]
 
-        history = model.fit(train_data_fold, train_labels_fold, batch_size = 8, epochs = 20, 
+        history = model.fit(train_data_fold, train_labels_fold, batch_size = 16, epochs = 100, 
                             verbose = 2, validation_data=(val_data_fold, val_labels_fold),
                             callbacks=[checkpointer], class_weight = class_weights)
 
@@ -742,7 +742,7 @@ def kfold_ShallowConvNet_classification(train_data, test_data, train_labels, tes
         train_data_fold, train_labels_fold = train_data[train_index], train_labels[train_index]
         val_data_fold, val_labels_fold = train_data[val_index], train_labels[val_index]
 
-        history = model.fit(train_data_fold, train_labels_fold, batch_size = 8, epochs = 20, 
+        history = model.fit(train_data_fold, train_labels_fold, batch_size = 16, epochs = 100, 
                             verbose = 2, validation_data=(val_data_fold, val_labels_fold),
                             callbacks=[checkpointer], class_weight = class_weights)
 

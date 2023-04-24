@@ -1,0 +1,25 @@
+Stratified k-fold
+
+Raw data, 20 epochs
+EEGNet Overall classification accuracy: 48.70%
+TSGL Overall classification accuracy: 48.33%
+Deep Overall classification accuracy: 49.66%
+Shallow Overall classification accuracy: 49.73%
+
+Init data, 20 epochs
+EEGNet Overall classification accuracy: 50.99%
+TSGL Overall classification accuracy: 52.57%
+Deep Overall classification accuracy: 50.78%
+Shallow Overall classification accuracy: 51.28%
+
+ICA data, 20 epochs
+EEGNet Overall classification accuracy: 53.48%
+TSGL Overall classification accuracy: 53.10%
+Deep Overall classification accuracy: %
+Shallow Overall classification accuracy: %
+
+ICA_i data, 20 epochs
+EEGNet Overall classification accuracy: %
+TSGL Overall classification accuracy: %
+Deep Overall classification accuracy: %
+Shallow Overall classification accuracy: %
