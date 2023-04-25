@@ -117,7 +117,10 @@ def load_kfold_data(data_type, label_type, epoched = False, binary = True):
             test_data, test_labels = epoch_data_and_labels(test_data_arr, test_labels_arr, sfreq=v.NEW_SFREQ)
         else:
             train_data, train_labels = epoch_data_and_labels(train_data_arr, train_labels_arr, sfreq=v.SFREQ)  
-            test_data, test_labels = epoch_data_and_labels(test_data_arr, test_labels_arr, sfreq=v.SFREQ)  
+            test_data, test_labels = epoch_data_and_labels(test_data_arr, test_labels_arr, sfreq=v.SFREQ)
+    else:
+        train_data, train_labels = train_data_arr.copy(), train_labels_arr.copy()
+        test_data, test_labels = test_data_arr.copy(), test_labels_arr.copy()  
 
     print(f"\nShape of train data set: {train_data.shape}")
     print(f"Shape of train labels set: {train_labels.shape}")

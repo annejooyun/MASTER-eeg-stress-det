@@ -24,76 +24,55 @@ from tensorflow.keras import models
 import matplotlib.pyplot as plt
 
 # EEGNet-specific imports
-from EEGModels import EEGNet,EEGNet_SSVEP,TSGLEEGNet, DeepConvNet, ShallowConvNet, TSGLEEGNet
+from EEGModels import EEGNet,TSGLEEGNet, DeepConvNet, ShallowConvNet, TSGLEEGNet
 from tensorflow.keras.callbacks import ModelCheckpoint
 
 import utils.variables as v
 
 
 
-def knn_classification(x_train, x_test, y_train, y_test):
-    n_splits = len(x_train)
-
+def knn_classification(train_data, test_data, train_labels, test_labels):
     param_grid = {
         'leaf_size': range(50),
         'n_neighbors': range(1, 10),
         'p': [1, 2]
     }
+    scaler = MinMaxScaler()
+    train_data = scaler.fit_transform(train_data)
+    test_data = scaler.transform(test_data)
 
-    results = []
-    for i in range(n_splits):
-        x_train_fold = x_train[i]
-        x_test_fold = x_test[i]
+    knn_clf = GridSearchCV(KNeighborsClassifier(), param_grid, refit=True, n_jobs=-1, cv = 10)
+    knn_clf.fit(train_data, train_labels)
 
-        y_train_fold = y_train[i]
-        y_test_fold = y_test[i]
+    y_pred = knn_clf.predict(test_data)
+    y_true = test_labels
 
-        scaler = MinMaxScaler()
-        x_train_fold = scaler.fit_transform(x_train_fold)
-        x_test_fold = scaler.transform(x_test_fold)
-
-        knn_clf = GridSearchCV(KNeighborsClassifier(), param_grid, refit=True, n_jobs=-1)
-        knn_clf.fit(x_train_fold, y_train_fold)
-
-        y_pred = knn_clf.predict(x_test_fold)
-        y_true = y_test_fold
-
-        print(f'\nResults for fold {i+1}:')
-        print(metrics.classification_report(y_true, y_pred))
-        print(metrics.confusion_matrix(y_true, y_pred))
-        
+    print(f'\nResults:')
+    print(metrics.classification_report(y_true, y_pred))
+    print(metrics.confusion_matrix(y_true, y_pred))
+    
 
 
 
-def svm_classification(x_train, x_test, y_train, y_test):
+def svm_classification(train_data, test_data, train_labels, test_labels):
     param_grid = {
         'C': [0.1, 1, 10, 100, 1000],
         'kernel': ['rbf']
     }
+    scaler = MinMaxScaler()
+    scaler.fit(train_data)
+    train_data = scaler.transform(train_data)
+    test_data = scaler.transform(test_data)
 
-    n_splits = len(x_train)
+    svm_clf = GridSearchCV(SVC(), param_grid, refit=True)
+    svm_clf.fit(train_data, train_labels)
 
-    for i in range(n_splits):
-        x_train_fold = x_train[i]
-        x_test_fold = x_test[i]
+    y_pred = svm_clf.predict(test_data)
+    y_true = test_labels
 
-        y_train_fold = y_train[i]
-        y_test_fold = y_test[i]
-
-        scaler = MinMaxScaler()
-        scaler.fit(x_train_fold)
-        x_train_fold = scaler.transform(x_train_fold)
-        x_test_fold = scaler.transform(x_test_fold)
-
-        svm_clf = GridSearchCV(SVC(), param_grid, refit=True)
-        svm_clf.fit(x_train_fold, y_train_fold)
-
-        y_pred = svm_clf.predict(x_test_fold)
-        y_true = y_test_fold
-
-        print(f'\nResults for fold {i+1}:')
-        print(metrics.classification_report(y_true, y_pred))
-        print(metrics.confusion_matrix(y_true, y_pred))
+    print(f'\nResults for fold {i+1}:')
+    print(metrics.classification_report(y_true, y_pred))
+    print(metrics.confusion_matrix(y_true, y_pred))
 
 
 
