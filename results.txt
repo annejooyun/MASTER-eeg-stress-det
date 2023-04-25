@@ -1,7 +1,21 @@
 RESULTS
 RAW and STAI:
 
+KNN
+ Confusion matrix:
+[[78 10]
+ [17 47]]
+Accuracy, Sensitivity, Specificyty:
 
+[82.24 82.11 82.46]
+
+SVM
+ Confusion matrix:
+[[81  7]
+ [12 52]]
+Accuracy, Sensitivity, Specificyty:
+
+[87.5  87.1  88.14]S
 -----------------------------------------
 INIT and STAI:
 KNN:
