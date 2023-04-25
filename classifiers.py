@@ -48,8 +48,13 @@ def knn_classification(train_data, test_data, train_labels, test_labels):
     y_true = test_labels
 
     print(f'\nResults:')
-    print(metrics.classification_report(y_true, y_pred))
-    print(metrics.confusion_matrix(y_true, y_pred))
+    acc         = np.mean(y_pred == y_true)
+    print("Classification accuracy: %f " % (acc))
+
+    # print performance
+    performance = compute_metrics(y_true, y_pred)
+    print("Accuracy, Sensitivity, Specificity:\n")
+    print(performance)
     
 
 
@@ -64,15 +69,20 @@ def svm_classification(train_data, test_data, train_labels, test_labels):
     train_data = scaler.transform(train_data)
     test_data = scaler.transform(test_data)
 
-    svm_clf = GridSearchCV(SVC(), param_grid, refit=True)
+    svm_clf = GridSearchCV(SVC(), param_grid, refit=True, cv = 10)
     svm_clf.fit(train_data, train_labels)
 
     y_pred = svm_clf.predict(test_data)
     y_true = test_labels
 
-    print(f'\nResults for fold {i+1}:')
-    print(metrics.classification_report(y_true, y_pred))
-    print(metrics.confusion_matrix(y_true, y_pred))
+    print(f'\nResults:')
+    acc         = np.mean(y_pred == y_true)
+    print("Classification accuracy: %f " % (acc))
+
+    # print performance
+    performance = compute_metrics(y_true, y_pred)
+    print("Accuracy, Sensitivity, Specificity:\n")
+    print(performance)
 
 
 
