@@ -1,19 +1,19 @@
-RESULTS
+RESULTS Full data
+
 RAW and STAI:
 
 KNN
  Confusion matrix:
 [[78 10]
  [17 47]]
-Accuracy, Sensitivity, Specificyty:
-
+Accuracy, Sensitivity, Specificity:
 [82.24 82.11 82.46]
 
 SVM
  Confusion matrix:
 [[81  7]
  [12 52]]
-Accuracy, Sensitivity, Specificyty:
+Accuracy, Sensitivity, Specificity:
 
 [87.5  87.1  88.14]S
 -----------------------------------------
@@ -22,14 +22,14 @@ KNN:
  Confusion matrix:
 [[84  4]
  [63  1]]
-Accuracy, Sensitivity, Specificyty:
+Accuracy, Sensitivity, Specificity:
 [55.92 57.14 20.  ]
 
 SVM:
 Confusion matrix:
 [[68 20]
  [49 15]]
-Accuracy, Sensitivity, Specificyty:
+Accuracy, Sensitivity, Specificity:
 [54.61 58.12 42.86]
 
 -----------------------------------------
@@ -47,3 +47,241 @@ Confusion matrix:
  [61  3]]
 Accuracy, Sensitivity, Specificity:
 [51.32 55.15 18.75]
+
+-----------------------------------------
+NEW_ICA and STAI:
+KNN:
+Confusion matrix:
+[[72 16]
+ [56  8]]
+Accuracy, Sensitivity, Specificity:
+
+[52.63 56.25 33.33]
+
+SVM:
+Confusion matrix:
+[[88  0]
+ [64  0]]
+Null error in specificity
+Accuracy, Sensitivity, Specificity:
+
+[57.89 57.89  0.  ]
+
+-----------------------------------------
+-----------------------------------------
+
+RAW and PSS:
+
+KNN:
+ Confusion matrix:
+[[64  0]
+ [24  8]]
+Accuracy, Sensitivity, Specificity:
+[ 75.    72.73 100.  ]
+
+SVM:
+Confusion matrix:
+[[56  8]
+ [ 4 28]]
+Accuracy, Sensitivity, Specificity:
+
+[87.5  93.33 77.78]
+
+-----------------------------------------
+
+INIT and PSS:
+
+KNN:
+Confusion matrix:
+[[64  0]
+ [32  0]]
+Null error in specificity
+Accuracy, Sensitivity, Specificity:
+[66.67 66.67  0.  ]
+
+SVM:
+Confusion matrix:
+[[64  0]
+ [32  0]]
+Null error in specificity
+Accuracy, Sensitivity, Specificity:
+[66.67 66.67  0.  ]
+
+-----------------------------------------
+
+ICA and PSS:
+
+KNN:
+Confusion matrix:
+[[59  5]
+ [31  1]]
+Accuracy, Sensitivity, Specificity:
+[62.5  65.56 16.67]
+
+SVM:
+Confusion matrix:
+[[64  0]
+ [31  1]]
+Accuracy, Sensitivity, Specificity:
+[ 67.71  67.37 100.  ]
+
+-----------------------------------------
+
+NEW_ICA and PSS:
+
+KNN:
+Confusion matrix:
+[[64  0]
+ [32  0]]
+Null error in specificity
+Accuracy, Sensitivity, Specificity:
+[66.67 66.67  0.  ]
+
+SVM:
+Confusion matrix:
+[[64  0]
+ [32  0]]
+Null error in specificity
+Accuracy, Sensitivity, Specificity:
+[66.67 66.67  0.  ]
+
+-----------------------------------------
+-----------------------------------------
+-----------------------------------------
+
+RESULTS time_series_features
+
+RAW and STAI:
+KNN:
+Confusion matrix:
+[[73 15]
+ [23 41]]
+Accuracy, Sensitivity, Specificity:
+[75.   76.04 73.21]
+
+SVM:
+Confusion matrix:
+[[75 13]
+ [13 51]]
+Accuracy, Sensitivity, Specificity:
+[82.89 85.23 79.69]
+
+
+INIT and STAI:
+KNN:
+Confusion matrix:
+[[82  6]
+ [53 11]]
+Accuracy, Sensitivity, Specificity:
+[61.18 60.74 64.71]
+
+SVM:
+Confusion matrix:
+[[72 16]
+ [44 20]]
+Accuracy, Sensitivity, Specificity:
+[60.53 62.07 55.56]
+
+
+ICA and STAI:
+KNN:
+Confusion matrix:
+[[71 17]
+ [51 13]]
+Accuracy, Sensitivity, Specificity:
+[55.26 58.2  43.33]
+
+SVM:
+Confusion matrix:
+[[56 32]
+ [21 43]]
+Accuracy, Sensitivity, Specificity:
+[65.13 72.73 57.33]
+
+NEW_ICA and STAI:
+KNN:
+Confusion matrix:
+[[72 16]
+ [56  8]]
+Accuracy, Sensitivity, Specificity:
+[52.63 56.25 33.33]
+
+SVM:
+Confusion matrix:
+[[88  0]
+ [64  0]]
+Null error in specificity
+Accuracy, Sensitivity, Specificity:
+[57.89 57.89  0.  ]
+
+-----------------------------------------
+
+RAW and PSS:
+KNN:
+ Confusion matrix:
+[[58  6]
+ [16 16]]
+Accuracy, Sensitivity, Specificity:
+[77.08 78.38 72.73]
+
+SVM:
+ Confusion matrix:
+[[56  8]
+ [14 18]]
+Accuracy, Sensitivity, Specificity:
+[77.08 80.   69.23]
+
+
+INIT and PSS:
+KNN:
+ Confusion matrix:
+[[62  2]
+ [29  3]]
+Accuracy, Sensitivity, Specificity:
+[67.71 68.13 60.  ]
+
+SVM:
+ Confusion matrix:
+[[63  1]
+ [28  4]]
+Accuracy, Sensitivity, Specificity:
+[69.79 69.23 80.  ]
+
+
+ICA and PSS:
+KNN:
+ Confusion matrix:
+[[55  9]
+ [30  2]]
+Accuracy, Sensitivity, Specificity:
+[59.38 64.71 18.18]
+
+SVM:
+Confusion matrix:
+[[61  3]
+ [28  4]]
+Accuracy, Sensitivity, Specificity:
+[67.71 68.54 57.14]
+
+
+NEW_ICA and PSS:
+KNN:
+Confusion matrix:
+[[64  0]
+ [32  0]]
+Null error in specificity
+Accuracy, Sensitivity, Specificity:
+[66.67 66.67  0.  ]
+
+SVM:
+Confusion matrix:
+[[64  0]
+ [32  0]]
+Null error in specificity
+Accuracy, Sensitivity, Specificity:
+[66.67 66.67  0.  ]
+-----------------------------------------
+-----------------------------------------
+-----------------------------------------
+
+RESULTS time_series_features

@@ -5,7 +5,7 @@ def compute_metrics(y_true, y_pred):
     #print(metrics.classification_report(y_true, y_pred))
 
     conf_matrix = metrics.confusion_matrix(y_true, y_pred)
-    print('\n Confusion matrix:')
+    print('Confusion matrix:')
     print(conf_matrix)
 
     TP = conf_matrix[0,0]

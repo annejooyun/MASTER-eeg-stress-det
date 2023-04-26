@@ -1,5 +1,6 @@
 
 import mne_features.univariate as mne_f
+import mne_features
 import numpy as np
 import utils.variables as v
 
@@ -61,180 +62,203 @@ def kymatio_wave_scattering(data):
         features.append(features_for_fold)
     return features
 
-def differential_entropy(data):
+def time_series_features(data, new_ica):
     '''
-    Computes the features variance, RMS and peak-to-peak amplitude using the package mne_features.
-    Args:
-        data (list of dicts): A list of dictionaries, where each dictionary contains EEG data for multiple trials. The keys in each dictionary represent trial IDs, and the values are numpy arrays of shape (n_channels, n_samples).
-    Returns:
-        list of ndarrays: Computed features.
+    Compute the features peak-to-peak amplitude, variance and rms using the package mne_features.
+    The data should be on the form (n_recordings, n_channels, n_samples)
+    The output is on the form (n_trials*n_secs, n_channels*3)
     '''
-    first_key = next(iter(data[0]))
-    n_channels, _ = data[0][first_key].shape
-    features_per_channel = 1
+    if new_ica:
+        sfreq = v.NEW_SFREQ
+    else:
+        sfreq = v.SFREQ
+    
+    n_recordings = data.shape[0]
+    n_samples = data.shape[2]
+    n_samples_per_epoch = int(n_samples/sfreq)
+    n_epochs = int(n_samples/n_samples_per_epoch)
+    
+    ptp_amp = np.zeros((n_recordings, v.NUM_CHANNELS, n_epochs))
+    variance = np.zeros((n_recordings, v.NUM_CHANNELS, n_epochs))
+    rms = np.zeros((n_recordings,v.NUM_CHANNELS,n_epochs))
 
-    features = []
-    for fold in data:
-        n_trials = len(fold)
-        features_for_fold = np.empty(
-            [n_trials, n_channels * features_per_channel])
-        for j, key in enumerate(fold):
-            trial = fold[key]
-            diff_ent = sp.stats.differential_entropy(trial, window_length=None, base=None, axis=1, method='auto')
-            features_for_fold[j] = np.transpose(diff_ent)
-        features_for_fold = features_for_fold.reshape(
-            [n_trials, n_channels*features_per_channel])
-        features.append(features_for_fold)
+    for i in range(n_recordings):
+        for j in range(v.NUM_CHANNELS):
+            for k in range(n_epochs):
+                start_indx = k*n_samples_per_epoch
+                end_indx = start_indx + n_samples_per_epoch
+                data_epoch = data[i,j,start_indx:end_indx]
+
+                ptp_amp[i,j,k] = mne_features.univariate.compute_ptp_amp(data_epoch)
+                variance[i,j,k] = mne_features.univariate.compute_variance(data_epoch)
+                rms[i,j,k] = mne_features.univariate.compute_rms(data_epoch)
+    
+    features = np.stack((ptp_amp, variance, rms), axis = -1)
+    n_epochs = features.shape[-2]
+    features = features.reshape((-1, n_epochs*3))
     return features
 
-def time_series_features(data):
+def fractal_features(data, new_ica):
     '''
-    Computes the features variance, RMS and peak-to-peak amplitude using the package mne_features.
-    Args:
-        data (list of dicts): A list of dictionaries, where each dictionary contains EEG data for multiple trials. The keys in each dictionary represent trial IDs, and the values are numpy arrays of shape (n_channels, n_samples).
-    Returns:
-        list of ndarrays: Computed features.
+    Compute the Higuchi Fractal Dimension and Katz Fractal Dimension using the package mne_features.
+    The data should be on the form (n_trials, n_secs, n_channels, sfreq)
+    The output is on the form (n_trials*n_secs, n_channels*2)
     '''
-    first_key = next(iter(data[0]))
-    n_channels, _ = data[0][first_key].shape
-    features_per_channel = 3
+    if new_ica:
+        sfreq = v.NEW_SFREQ
+    else:
+        sfreq = v.SFREQ
+    
+    n_recordings = data.shape[0]
+    n_samples = data.shape[2]
+    n_samples_per_epoch = int(n_samples/sfreq)
+    n_epochs = int(n_samples/n_samples_per_epoch)
+    
+    higuchi = np.zeros((n_recordings, v.NUM_CHANNELS, n_epochs))
+    katz = np.zeros((n_recordings, v.NUM_CHANNELS, n_epochs))
 
-    features = []
-    for fold in data:
-        n_trials = len(fold)
-        features_for_fold = np.empty(
-            [n_trials, n_channels * features_per_channel])
-        for j, key in enumerate(fold):
-            trial = fold[key]
-            variance = mne_f.compute_variance(trial)
-            rms = mne_f.compute_rms(trial)
-            ptp_amp = mne_f.compute_ptp_amp(trial)
-            #print('variance shape: ', variance.shape)
-            features_for_fold[j] = np.concatenate([variance, rms, ptp_amp])
-        features_for_fold = features_for_fold.reshape(
-            [n_trials, n_channels*features_per_channel])
-        features.append(features_for_fold)
-        #print('features len: ', len(features))
-        #print('features shape: ', features[0].shape)
+    for i in range(n_recordings):
+        for j in range(v.NUM_CHANNELS):
+            for k in range(n_epochs):
+                start_indx = k*n_samples_per_epoch
+                end_indx = start_indx + n_samples_per_epoch
+                data_epoch = data[i,j,start_indx:end_indx]
+
+                higuchi[i,j,k] = mne_features.univariate.compute_higuchi_fd(data_epoch)
+                katz[i,j,k] = mne_features.univariate.compute_katz_fd(data_epoch)
+    
+    features = np.stack((higuchi, katz), axis = -1)
+    n_epochs = features.shape[-2]
+    features = features.reshape((-1, n_epochs*2))
     return features
 
-
-def freq_band_features(data, freq_bands):
+def entropy_features(data, new_ica):
     '''
-    Computes the frequency bands delta, theta, alpha, beta and gamma using the package mne_features.
-    Args:
-        data (list of dicts): A list of dictionaries, where each dictionary contains EEG data for multiple trials. The keys in each dictionary represent trial IDs, and the values are numpy arrays of shape (n_channels, n_samples).
-        freq_bands (ndarray): The frequency bands to compute.
-    Returns:
-        list of ndarrays: Computed features.
+    Compute the features Approximate Entropy, Sample Entropy, Spectral Entropy and SVD entropy using the package mne_features.
+    The data should be on the form (n_trials, n_secs, n_channels, sfreq)
+    The output is on the form (n_trials*n_secs, n_channels*4)
     '''
-    first_key = next(iter(data[0]))
-    n_channels, _ = data[0][first_key].shape
-    features_per_channel = len(freq_bands)-1
+    if new_ica:
+        sfreq = v.NEW_SFREQ
+    else:
+        sfreq = v.SFREQ
+    
+    n_recordings = data.shape[0]
+    n_samples = data.shape[2]
+    n_samples_per_epoch = int(n_samples/sfreq)
+    n_epochs = int(n_samples/n_samples_per_epoch)
+    
+    app_entropy = np.zeros((n_recordings, v.NUM_CHANNELS, n_epochs))
+    samp_entropy = np.zeros((n_recordings, v.NUM_CHANNELS, n_epochs))
+    spect_entropy = np.zeros((n_recordings, v.NUM_CHANNELS, n_epochs))
+    svd_entropy = np.zeros((n_recordings, v.NUM_CHANNELS, n_epochs))
 
-    features = []
-    for fold in data:
-        n_trials = len(fold)
-        features_for_fold = np.empty(
-            [n_trials, n_channels * features_per_channel])
-        for j, key in enumerate(fold):
-            trial = fold[key]
-            psd = mne_f.compute_pow_freq_bands(
-                v.SFREQ, trial, freq_bands=freq_bands)
-            features_for_fold[j] = psd
-        features_for_fold = features_for_fold.reshape(
-            [n_trials, n_channels*features_per_channel])
-        features.append(features_for_fold)
+    for i in range(n_recordings):
+        for j in range(v.NUM_CHANNELS):
+            for k in range(n_epochs):
+                start_indx = k*n_samples_per_epoch
+                end_indx = start_indx + n_samples_per_epoch
+                data_epoch = data[i,j,start_indx:end_indx]
+
+                app_entropy = mne_features.univariate.compute_app_entropy(data_epoch)
+                samp_entropy = mne_features.univariate.compute_samp_entropy(data_epoch)
+                spect_entropy = mne_features.univariate.compute_spect_entropy(sfreq, data_epoch)
+                svd_entropy = mne_features.univariate.compute_svd_entropy(data_epoch)
+        
+    features = np.stack((app_entropy, samp_entropy, spect_entropy, svd_entropy), axis = -1)
+    n_epochs = features.shape[-2]
+    features = features.reshape((-1, n_epochs*2))
     return features
 
-
-def hjorth_features(data):
+def hjorth_features(data, new_ica):
     '''
-    Computes the features Hjorth mobility (spectral) and Hjorth complexity (spectral) using the package mne_features.
-    Args:
-        data (list of dicts): A list of dictionaries, where each dictionary contains EEG data for multiple trials. The keys in each dictionary represent trial IDs, and the values are numpy arrays of shape (n_channels, n_samples).
-    Returns:
-        list of ndarrays: Computed features.
+    Compute the features Hjorth mobility (spectral) and Hjorth complexity (spectral) using the package mne_features.
+    The data should be on the form (n_trials, n_secs, n_channels, sfreq)
+    The output is on the form (n_trials*n_secs, n_channels*2)
     '''
 
-    first_key = next(iter(data[0]))
-    n_channels, _ = data[0][first_key].shape
-    features_per_channel = 2
+    if new_ica:
+        sfreq = v.NEW_SFREQ
+    else:
+        sfreq = v.SFREQ
+    
+    n_recordings = data.shape[0]
+    n_samples = data.shape[2]
+    n_samples_per_epoch = int(n_samples/sfreq)
+    n_epochs = int(n_samples/n_samples_per_epoch)
+    
+    mobility_spect = np.zeros((n_recordings, v.NUM_CHANNELS, n_epochs))
+    complexity_spect = np.zeros((n_recordings, v.NUM_CHANNELS, n_epochs))
 
-    features = []
-    for fold in data:
-        n_trials = len(fold)
-        features_for_fold = np.empty(
-            [n_trials, n_channels * features_per_channel])
-        for j, key in enumerate(fold):
-            trial = fold[key]
-            mobility_spect = mne_f.compute_hjorth_mobility_spect(v.SFREQ, trial)
-            complexity_spect = mne_f.compute_hjorth_complexity_spect(v.SFREQ, trial)
-            features_for_fold[j] = np.concatenate([mobility_spect, complexity_spect])
-        features_for_fold = features_for_fold.reshape([n_trials, n_channels*features_per_channel])
-        features.append(features_for_fold)
+    for i in range(n_recordings):
+        for j in range(v.NUM_CHANNELS):
+            for k in range(n_epochs):
+                start_indx = k*n_samples_per_epoch
+                end_indx = start_indx + n_samples_per_epoch
+                data_epoch = data[i,j,start_indx:end_indx]
+
+                mobility_spect = mne_features.univariate.compute_hjorth_mobility_spect(sfreq, data_epoch)
+                complexity_spect = mne_features.univariate.compute_hjorth_complexity_spect(sfreq, data_epoch)
+        
+    features = np.stack((mobility_spect, complexity_spect), axis = -1)
+    n_epochs = features.shape[-2]
+    features = features.reshape((-1, n_epochs*2))
     return features
 
-
-def fractal_features(data):
+def freq_band_features(data, freq_bands, new_ica):
     '''
-    Computes the Higuchi Fractal Dimension and Katz Fractal Dimension using the package mne_features.
-    Args:
-        data (ndarray): EEG data.
-    Returns:
-        list of ndarrays: Computed features.
+    Compute the frequency bands delta, theta, alpha, beta and gamma using the package mne_features.
+    The data should be on the form (n_trials, n_secs, n_channels, sfreq)
+    The output is on the form (n_trials*n_secs, n_channels*5)
     '''
+    if new_ica:
+        sfreq = v.NEW_SFREQ
+    else:
+        sfreq = v.SFREQ
 
-    first_key = next(iter(data[0]))
-    n_channels, _ = data[0][first_key].shape
-    features_per_channel = 2
+    n_recordings = data.shape[0]
+    n_samples = data.shape[2]
+    n_samples_per_epoch = int(n_samples/sfreq)
+    n_epochs = int(n_samples/n_samples_per_epoch)
 
-    features = []
-    for fold in data:
-        n_trials = len(fold)
-        features_for_fold = np.empty(
-            [n_trials, n_channels * features_per_channel])
-        for j, key in enumerate(fold):
-            trial = fold[key]
-            higuchi = mne_f.compute_higuchi_fd(trial)
-            katz = mne_f.compute_katz_fd(trial)
-            features_for_fold[j] = np.concatenate([higuchi, katz])
-        features_for_fold = features_for_fold.reshape(
-            [n_trials, n_channels*features_per_channel])
-        features.append(features_for_fold)
+    features_to_compute = len(freq_bands)-1
+    n_features = v.NUM_CHANNELS*features_to_compute
+
+    psd = np.empty([n_recordings, data.shape[1], n_features])
+    for i, trial in enumerate(data):
+        for j, second in enumerate(trial):
+            PSD = mne_features.univariate.compute_pow_freq_bands(
+                v.SFREQ, second, freq_bands=freq_bands, normalize=True, ratios=None, ratios_triu=False, psd_method='welch', log=False, psd_params=None)
+            features[i][j] = PSD
+    features = features.reshape([features.shape[0]*features.shape[1], features.shape[2]])
+    
+    if new_ica:
+        sfreq = v.NEW_SFREQ
+    else:
+        sfreq = v.SFREQ
+    
+    n_recordings = data.shape[0]
+    n_samples = data.shape[2]
+    n_samples_per_epoch = int(n_samples/sfreq)
+    n_epochs = int(n_samples/n_samples_per_epoch)
+    
+    psd = np.zeros((n_recordings, v.NUM_CHANNELS, n_epochs))
+
+    for i in range(n_recordings):
+        for j in range(v.NUM_CHANNELS):
+            for k in range(n_epochs):
+                start_indx = k*n_samples_per_epoch
+                end_indx = start_indx + n_samples_per_epoch
+                data_epoch = data[i,j,start_indx:end_indx]
+
+                psd = mne_features.univariate.compute_pow_freq_bands(
+                v.SFREQ, data_epoch, freq_bands=freq_bands, normalize=True, ratios=None, ratios_triu=False, psd_method='welch', log=False, psd_params=None)
+            features[i][j] = PSD
+        
+    features = np.stack((psd), axis = -1)
+    n_epochs = features.shape[-2]
+    features = features.reshape((-1, n_epochs*2))
     return features
-
-
-def entropy_features(data):
-    '''
-    Computes the features Approximate Entropy, Sample Entropy, Spectral Entropy and SVD entropy using the package mne_features.
-    Args:
-        data (list of dicts): A list of dictionaries, where each dictionary contains EEG data for multiple trials. The keys in each dictionary represent trial IDs, and the values are numpy arrays of shape (n_channels, n_samples).
-    Returns:
-        list of ndarrays: Computed features.
-    '''
-
-    first_key = next(iter(data[0]))
-    n_channels, _ = data[0][first_key].shape
-    features_per_channel = 4
-
-    features = []
-    for fold in data:
-        n_trials = len(fold)
-        features_for_fold = np.empty(
-            [n_trials, n_channels * features_per_channel])
-        for j, key in enumerate(fold):
-            trial = fold[key]
-            app_entropy = mne_f.compute_app_entropy(trial)
-            samp_entropy = mne_f.compute_samp_entropy(trial)
-            spect_entropy = mne_f.compute_spect_entropy(v.SFREQ, trial)
-            svd_entropy = mne_f.compute_svd_entropy(trial)
-            features_for_fold[j] = np.concatenate(
-                [app_entropy, samp_entropy, spect_entropy, svd_entropy])
-        features_for_fold = features_for_fold.reshape(
-            [n_trials, n_channels*features_per_channel])
-        features.append(features_for_fold)
-    return 
 
 
 def all_features_1(data):

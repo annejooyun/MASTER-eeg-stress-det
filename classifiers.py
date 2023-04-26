@@ -33,7 +33,7 @@ import utils.variables as v
 
 def knn_classification(train_data, test_data, train_labels, test_labels):
     param_grid = {
-        'leaf_size': range(50),
+        'leaf_size': range(1,50),
         'n_neighbors': range(1, 10),
         'p': [1, 2]
     }
@@ -47,13 +47,9 @@ def knn_classification(train_data, test_data, train_labels, test_labels):
     y_pred = knn_clf.predict(test_data)
     y_true = test_labels
 
-    print(f'\nResults:')
-    acc         = np.mean(y_pred == y_true)
-    print("Classification accuracy: %f " % (acc))
-
-    # print performance
+    print('KNN:')
     performance = compute_metrics(y_true, y_pred)
-    print("Accuracy, Sensitivity, Specificity:\n")
+    print("Accuracy, Sensitivity, Specificity:")
     print(performance)
     
 
@@ -75,13 +71,10 @@ def svm_classification(train_data, test_data, train_labels, test_labels):
     y_pred = svm_clf.predict(test_data)
     y_true = test_labels
 
-    print(f'\nResults:')
-    acc         = np.mean(y_pred == y_true)
-    print("Classification accuracy: %f " % (acc))
-
+    print('SVM:')
     # print performance
     performance = compute_metrics(y_true, y_pred)
-    print("Accuracy, Sensitivity, Specificity:\n")
+    print('Accuracy, Sensitivity, Specificity:')
     print(performance)
 
 
