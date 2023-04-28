@@ -2,7 +2,12 @@ import numpy as np
 import pandas as pd
 import logging
 import math
-import utils.variables as v
+
+import sys
+import os
+module_path = os.path.abspath(os.path.join('..'))
+sys.path.insert(1, module_path + '/utils/')
+import variables as v
 
 def load_pss_scores(filename):
     """
@@ -66,7 +71,7 @@ def filter_pss_labels(scores, valid_recs, low_cutoff, high_cutoff):
     return labels
 
 
-def get_pss_labels(valid_recs, filename='Data/STAI_grading.xlsx', low_cutoff = 3, high_cutoff = 7):
+def get_pss_labels(valid_recs, filename=v.LABELS_PATH, low_cutoff = 3, high_cutoff = 7):
     """
     Get filtered and binarized PSS (Perceived Stress Scale) scores for a list of valid record IDs.
     Parameters
@@ -74,7 +79,7 @@ def get_pss_labels(valid_recs, filename='Data/STAI_grading.xlsx', low_cutoff = 3
     valid_recs : list of str
         A list of valid record IDs to keep in the filtered scores.
     filename : str, optional
-        The path to the Excel file containing the PSS scores. Default is 'Data/STAI_grading.xlsx'.
+        The path to the Excel file containing the PSS scores. Default is v.LABELS_PATH.
     threshold : int or float, optional
         The threshold value to use for binarizing the PSS scores. Scores greater than `threshold` will be
         binarized to 1, and scores less than or equal to `threshold` will be binarized to 0. Default is 4.
@@ -95,7 +100,7 @@ def get_pss_labels(valid_recs, filename='Data/STAI_grading.xlsx', low_cutoff = 3
 #-----------------------------------------------------------------------------------------------------
 
 
-def compute_stai_y1_scores(path='Data/STAI_grading.xlsx'):
+def compute_stai_y1_scores(path=v.LABELS_PATH):
     """
     Compute the average scores of subjects from the raw scores.
     Parameters
@@ -181,7 +186,7 @@ def compute_stai_labels(scores, valid_recs, low_cutoff, high_cutoff):
     return labels
 
 
-def get_stai_labels(valid_recs, path='Data/STAI_grading.xlsx', low_cutoff=37, high_cutoff=45):
+def get_stai_labels(valid_recs, path=v.LABELS_PATH, low_cutoff=37, high_cutoff=45):
     """
     Get labels for valid recordings.
     Parameters
@@ -189,7 +194,7 @@ def get_stai_labels(valid_recs, path='Data/STAI_grading.xlsx', low_cutoff=37, hi
     valid_recs : list
         List of valid recordings.
     path : str, optional
-        Path to the raw scores excel file. Default is 'Data/STAI_grading.xlsx'.
+        Path to the raw scores excel file. Default is v.LABELS_PATH.
     low_cutoff : int, optional
         The lower cutoff value. Default is 37.
     high_cutoff : int, optional

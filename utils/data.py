@@ -4,8 +4,11 @@ import numpy as np
 import scipy
 from sklearn.model_selection import StratifiedKFold, train_test_split
 
-
-import utils.variables as v
+import sys
+import os
+module_path = os.path.abspath(os.path.join('..'))
+sys.path.insert(1, module_path + '/utils/')
+import variables as v
 
 def read_eeg_data(data_type, filename, output_type):
     '''
