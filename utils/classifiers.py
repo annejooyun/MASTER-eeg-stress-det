@@ -1,11 +1,8 @@
 import numpy as np
-import sys
-import os
-module_path = os.path.abspath(os.path.join('..'))
-sys.path.insert(1, module_path + '/utils/')
-from metrics import compute_metrics
-from EEGModels import EEGNet,TSGLEEGNet, DeepConvNet, ShallowConvNet, TSGLEEGNet
-import variables as v
+
+from utils.metrics import compute_metrics
+from utils.EEGModels import EEGNet,TSGLEEGNet, DeepConvNet, ShallowConvNet, TSGLEEGNet
+import utils.variables as v
 
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split, GridSearchCV, PredefinedSplit

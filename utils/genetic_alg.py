@@ -2,14 +2,10 @@ import numpy as np
 import random
 import pandas as pd
 
-import sys
-import os
-module_path = os.path.abspath(os.path.join('..'))
-sys.path.insert(1, module_path + '/utils/')
-from dataset import load_dataset, load_labels, convert_to_epochs, load_channels
-from features import time_series_features, hjorth_features
-from classifiers import KNN, SVM, NN
-import variables as v
+from utils.dataset import load_dataset, load_labels, convert_to_epochs, load_channels
+from utils.features import time_series_features, hjorth_features
+from utils.classifiers import KNN, SVM, NN
+import utils.variables as v
 
 # This project is extended and a library called PyGAD is released to build the genetic algorithm.
 # PyGAD documentation: https://pygad.readthedocs.io

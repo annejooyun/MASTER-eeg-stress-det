@@ -3,22 +3,13 @@ import mne_features.univariate as mne_f
 import mne_features
 import numpy as np
 
-import sys
-import os
-module_path = os.path.abspath(os.path.join('..'))
-sys.path.insert(1, module_path + '/utils/')
-import variables as v
+import utils.variables as v
 
 import numpy as np
 import scipy as sp
 
 #Kymatio dependencies
 import tensorflow as tf
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Flatten, Dense
-
-from tensorflow.keras import layers
-
 from tensorflow.python.framework.ops import disable_eager_execution
 disable_eager_execution()
 

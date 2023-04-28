@@ -55,7 +55,7 @@ from keras.api._v2.keras.constraints import max_norm, \
                                                               unit_norm
 from keras.api._v2.keras import backend as K
 
-from regularizers import l_1, l_2, l1_l2, l2_1, tsc, sgl, tsgl, TSG
+from utils.regularizers import l_1, l_2, l1_l2, l2_1, tsc, sgl, tsgl, TSG
 
 
 def EEGNet(nb_classes=2, Chans = 64, Samples = 128, 

@@ -3,11 +3,7 @@ import pandas as pd
 import logging
 import math
 
-import sys
-import os
-module_path = os.path.abspath(os.path.join('..'))
-sys.path.insert(1, module_path + '/utils/')
-import variables as v
+import utils.variables as v
 
 def load_pss_scores(filename):
     """
