@@ -24,7 +24,7 @@ from tensorflow.keras import models
 import matplotlib.pyplot as plt
 
 # EEGNet-specific imports
-from EEGModels import EEGNet,EEGNet_SSVEP,TSGLEEGNet, DeepConvNet, ShallowConvNet, TSGLEEGNet
+from EEGModels import EEGNet,TSGLEEGNet, DeepConvNet, ShallowConvNet, TSGLEEGNet
 from tensorflow.keras.callbacks import ModelCheckpoint
 
 import utils.variables as v

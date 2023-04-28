@@ -23,15 +23,20 @@ def kymatio_wave_scattering(data):
     n_channels, _ = data[0][first_key].shape
     T_ = data[0][first_key].shape[-1]
     #print('T_: ', T_)
-    J = 6
-    Q = 16
-    S = Scattering1D(J,T_,Q)
+    J_ = 4
+    Q_ = 12
+    S_ = Scattering1D(J_,T_,Q_)
+    meta_ = S_.meta()
+    order0 = np.where(meta_['order'] == 0)
+    order1 = np.where(meta_['order'] == 1)
+    order2 = np.where(meta_['order'] == 2)
     x_ = data[0][first_key][0]
     x_ = x_ / np.max(np.abs(x_))
-    Sx_ = S(x_)
+    Sx_ = S_(x_)
     #print('Sx_ shape: ', Sx_.shape)
 
-    features_per_channel = Sx_.shape[0]
+    features_per_channel = Sx_[order2].shape[0]
+    #print('features per channel: ', features_per_channel)
     #print('n_chan: ', n_channels)
     features = []
     for fold in data:
@@ -45,16 +50,26 @@ def kymatio_wave_scattering(data):
             #print('trial shape: ', trial.shape)
             T = trial.shape[-1]
             #print('T: ', T)
-            J = 6
-            Q = 16
+            J = 4
+            Q = 12
             S = Scattering1D(J,T,Q)
+            meta = S.meta()
+            order0 = np.where(meta['order'] == 0)
+            order1 = np.where(meta['order'] == 1)
+            order2 = np.where(meta['order'] == 2)
             wav_scat = S(trial)
-            wav_scat = np.mean(wav_scat, axis=-1)
-            wav_scat = np.ndarray.flatten(wav_scat)
+            #print("wav: ", wav_scat.shape)
+            #print(wav_scat[0][order2].shape)
+            wav_scat_2nd = []
+            for i in range(0,n_channels):
+                wav_scat_2nd.append(wav_scat[i][order2])
+            
+            wav_scat_2nd = np.mean(wav_scat_2nd, axis=-1)
+            wav_scat_2nd = np.ndarray.flatten(wav_scat_2nd)
             #print('features_for_fold[j] shape: ', features_for_fold[j].shape)
             #print('features_for_fold shape: ', features_for_fold.shape)
             #print('wavscat_t shape: ', np.transpose(wav_scat).shape)
-            features_for_fold[j] = np.transpose(wav_scat)
+            features_for_fold[j] = np.transpose(wav_scat_2nd)
             
         features_for_fold = features_for_fold.reshape(
             [n_trials, n_channels*features_per_channel])
