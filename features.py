@@ -205,7 +205,7 @@ def hjorth_features(data, new_ica):
     features = features.reshape((-1, n_epochs*2))
     return features
 
-def freq_band_features(data, freq_bands, new_ica):
+def freq_band_features(data, new_ica, freq_bands = np.array([1, 4, 8, 12, 30, 50])):
     '''
     Compute the frequency bands delta, theta, alpha, beta and gamma using the package mne_features.
     The data should be on the form (n_trials, n_secs, n_channels, sfreq)

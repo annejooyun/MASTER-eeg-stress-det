@@ -47,6 +47,8 @@ def knn_classification(train_data, test_data, train_labels, test_labels):
     y_pred = knn_clf.predict(test_data)
     y_true = test_labels
 
+    print(knn_clf.best_estimator_)
+
     print('KNN:')
     performance = compute_metrics(y_true, y_pred)
     print("Accuracy, Sensitivity, Specificity:")
@@ -58,18 +60,19 @@ def knn_classification(train_data, test_data, train_labels, test_labels):
 def svm_classification(train_data, test_data, train_labels, test_labels):
     param_grid = {
         'C': [0.1, 1, 10, 100, 1000],
-        'kernel': ['rbf']
+        'kernel': ['linear', 'poly','rbf','sigmoid','precomputed']
     }
     scaler = MinMaxScaler()
-    scaler.fit(train_data)
-    train_data = scaler.transform(train_data)
+    train_data = scaler.fit_transform(train_data)
     test_data = scaler.transform(test_data)
 
-    svm_clf = GridSearchCV(SVC(), param_grid, refit=True, cv = 10)
+    svm_clf = GridSearchCV(SVC(), param_grid, refit=True,n_jobs=-1, cv = 10)
     svm_clf.fit(train_data, train_labels)
 
     y_pred = svm_clf.predict(test_data)
     y_true = test_labels
+
+    print(svm_clf.best_estimator_)
 
     print('SVM:')
     # print performance
