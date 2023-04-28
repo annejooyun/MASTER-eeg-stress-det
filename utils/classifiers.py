@@ -1,12 +1,12 @@
 import numpy as np
 
-from utils.metrics import compute_metrics
+#from utils.metrics import compute_metrics
 from utils.EEGModels import EEGNet,TSGLEEGNet, DeepConvNet, ShallowConvNet, TSGLEEGNet
 import utils.variables as v
 
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split, GridSearchCV, PredefinedSplit
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from sklearn.preprocessing import StandardScaler, MinMaxScaler, RobustScaler
 from sklearn import metrics
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
@@ -14,7 +14,6 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import classification_report
 import plotly.graph_objects as go
 import tensorflow as tf
-import matplotlib.pyplot as plt
 from tensorflow.keras.callbacks import ModelCheckpoint
 
 
@@ -23,11 +22,11 @@ from tensorflow.keras.callbacks import ModelCheckpoint
 
 def knn_classification(train_data, test_data, train_labels, test_labels):
     param_grid = {
-        'leaf_size': range(1,50),
-        'n_neighbors': range(1, 10),
+        'leaf_size': range(1, 10),
+        'n_neighbors': range(1, 5),
         'p': [1, 2]
     }
-    scaler = MinMaxScaler()
+    scaler = StandardScaler()
     train_data = scaler.fit_transform(train_data)
     test_data = scaler.transform(test_data)
 
@@ -45,16 +44,18 @@ def knn_classification(train_data, test_data, train_labels, test_labels):
     n_neighbors = results['param_n_neighbors'].data
     accuracies = results['mean_test_score']
 
+    print('Number of results:', len(accuracies))
+    #print('n_neighbors:', n_neighbors)
+    #print('leaf_sizes:', leaf_sizes)
+    print('accuracies:', accuracies)
     # plot the results
-    plt.figure(figsize=(10, 6))
-    for p in [1, 2]:
-        plt.plot(
-            accuracies[n_neighbors==5][leaf_sizes==p], 
-            label=f'p={p}'
-        )
-    plt.xlabel('Leaf Size')
+    plt.figure(1)
+    plt.plot(
+        range(len(accuracies)),
+        accuracies,
+    )
+    plt.xlabel('Iteration')
     plt.ylabel('Accuracy')
-    plt.legend()
     plt.show()
 
     print('KNN:')
@@ -67,14 +68,14 @@ def knn_classification(train_data, test_data, train_labels, test_labels):
 
 def svm_classification(train_data, test_data, train_labels, test_labels):
     param_grid = {
-        'C': [0.1, 1, 10, 100, 1000],
-        'kernel': ['linear', 'poly','rbf','sigmoid','precomputed']
+        'C': [0.001, 0.001, 0.1, 1, 10, 100, 1000, 10000, 100000, 1000000],
+        'kernel': ['rbf']
     }
-    scaler = MinMaxScaler()
+    scaler = RobustScaler()
     train_data = scaler.fit_transform(train_data)
     test_data = scaler.transform(test_data)
 
-    svm_clf = GridSearchCV(SVC(), param_grid, refit=True,n_jobs=-1, cv = 10)
+    svm_clf = GridSearchCV(SVC(), param_grid, refit=True, n_jobs=-1, cv = 10)
     svm_clf.fit(train_data, train_labels)
 
     y_pred = svm_clf.predict(test_data)
@@ -89,20 +90,19 @@ def svm_classification(train_data, test_data, train_labels, test_labels):
     kernel_values = results['param_kernel'].data
     accuracies = results['mean_test_score']
 
+    print('Number of results:', len(accuracies))
+    #print('C_values:', C_values)
+    #print('kernel_values:', kernel_values)
+    print('accuracies:', accuracies)
     # plot the results
-    plt.figure(figsize=(10, 6))
-    for kernel in ['linear', 'poly', 'rbf', 'sigmoid', 'precomputed']:
-        plt.plot(
-            C_values[kernel_values==kernel], 
-            accuracies[kernel_values==kernel], 
-            label=kernel
-        )
-    plt.xlabel('C')
+    plt.figure(2)
+    plt.plot(
+        range(len(accuracies)),
+        accuracies
+    )
+    plt.xlabel('Iteration')
     plt.ylabel('Accuracy')
-    plt.xscale('log')
-    plt.legend()
     plt.show()
-
     print('SVM:')
     # print performance
     performance = compute_metrics(y_true, y_pred)
