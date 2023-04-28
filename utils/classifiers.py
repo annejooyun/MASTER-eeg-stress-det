@@ -1,6 +1,13 @@
 import numpy as np
-from utils.metrics import compute_metrics
+import sys
+import os
+module_path = os.path.abspath(os.path.join('..'))
+sys.path.insert(1, module_path + '/utils/')
+from metrics import compute_metrics
+from EEGModels import EEGNet,TSGLEEGNet, DeepConvNet, ShallowConvNet, TSGLEEGNet
+import variables as v
 
+from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split, GridSearchCV, PredefinedSplit
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn import metrics
@@ -8,26 +15,12 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import classification_report
-
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-
-from keras import models, Input
-from keras import optimizers as opt
-from keras import backend as K
-from keras.layers import Dense
-#from keras_tuner.tuners import RandomSearch
-from tensorflow.keras.utils import to_categorical
-
 import tensorflow as tf
-from tensorflow.keras import models
 import matplotlib.pyplot as plt
-
-# EEGNet-specific imports
-from EEGModels import EEGNet,TSGLEEGNet, DeepConvNet, ShallowConvNet, TSGLEEGNet
 from tensorflow.keras.callbacks import ModelCheckpoint
 
-import variables as v
+
 
 
 
@@ -48,6 +41,24 @@ def knn_classification(train_data, test_data, train_labels, test_labels):
     y_true = test_labels
 
     print(knn_clf.best_estimator_)
+    results = knn_clf.cv_results_
+
+    # extract the relevant scores
+    leaf_sizes = results['param_leaf_size'].data
+    n_neighbors = results['param_n_neighbors'].data
+    accuracies = results['mean_test_score']
+
+    # plot the results
+    plt.figure(figsize=(10, 6))
+    for p in [1, 2]:
+        plt.plot(
+            accuracies[n_neighbors==5][leaf_sizes==p], 
+            label=f'p={p}'
+        )
+    plt.xlabel('Leaf Size')
+    plt.ylabel('Accuracy')
+    plt.legend()
+    plt.show()
 
     print('KNN:')
     performance = compute_metrics(y_true, y_pred)
@@ -73,6 +84,27 @@ def svm_classification(train_data, test_data, train_labels, test_labels):
     y_true = test_labels
 
     print(svm_clf.best_estimator_)
+    # fit the grid search to get the results
+    results = svm_clf.cv_results_
+
+    # extract the relevant scores
+    C_values = results['param_C'].data
+    kernel_values = results['param_kernel'].data
+    accuracies = results['mean_test_score']
+
+    # plot the results
+    plt.figure(figsize=(10, 6))
+    for kernel in ['linear', 'poly', 'rbf', 'sigmoid', 'precomputed']:
+        plt.plot(
+            C_values[kernel_values==kernel], 
+            accuracies[kernel_values==kernel], 
+            label=kernel
+        )
+    plt.xlabel('C')
+    plt.ylabel('Accuracy')
+    plt.xscale('log')
+    plt.legend()
+    plt.show()
 
     print('SVM:')
     # print performance

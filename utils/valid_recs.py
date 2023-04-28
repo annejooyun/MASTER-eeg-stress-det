@@ -1,6 +1,10 @@
 import os
-import utils.variables as v
-from utils.data import read_eeg_data
+import sys
+import os
+module_path = os.path.abspath(os.path.join('..'))
+sys.path.insert(1, module_path + '/utils/')
+import variables as v
+from data import read_eeg_data
 
 def generate_all_recs():
     """

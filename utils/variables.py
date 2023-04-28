@@ -6,7 +6,7 @@ DIR_ICA_FILTERED = 'Data/ICA_data'
 DIR_INIT_FILTERED = 'Data/Init_filter_data'
 DIR_NEW_ICA = 'Data/New_ICA_data'
 
-LABELS_PATH = 'Data/STAI_grading.xls'
+LABELS_PATH = 'utils/STAI_grading.xlsx'
 
 NUM_SUBJECTS = 28
 NUM_SESSIONS = 2

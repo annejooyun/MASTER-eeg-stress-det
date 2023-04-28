@@ -1,8 +1,11 @@
-from utils.data import extract_eeg_data, multi_to_binary_classification, split_dataset, dict_to_arr,  epoch_data_and_labels
-from utils.labels import get_stai_labels, get_pss_labels
-from utils.valid_recs import get_valid_recs
-
-import utils.variables as v
+import sys
+import os
+module_path = os.path.abspath(os.path.join('..'))
+sys.path.insert(1, module_path + '/utils/')
+from data import extract_eeg_data, multi_to_binary_classification, split_dataset, dict_to_arr,  epoch_data_and_labels
+from labels import get_stai_labels, get_pss_labels
+from valid_recs import get_valid_recs
+import variables as v
 import numpy as np
 
 

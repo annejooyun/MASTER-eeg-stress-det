@@ -2,7 +2,12 @@
 import mne_features.univariate as mne_f
 import mne_features
 import numpy as np
-import utils.variables as v
+
+import sys
+import os
+module_path = os.path.abspath(os.path.join('..'))
+sys.path.insert(1, module_path + '/utils/')
+import variables as v
 
 import numpy as np
 import scipy as sp
