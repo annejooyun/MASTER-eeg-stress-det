@@ -13,7 +13,7 @@ def read_eeg_data(data_type, filename, output_type):
     #Assoociating correct data_key to the inputted data_type
     if data_type == 'raw':
         data_key = 'raw_eeg_data'
-    elif data_type=='ica' or data_type =='init' or data_type =='new_ica':
+    elif data_type== 'ica' or data_type == 'init' or data_type == 'new_ica':
         data_key = 'Clean_data'
     else:
         print(f'No data with data_type = {data_type} found')
@@ -28,7 +28,6 @@ def read_eeg_data(data_type, filename, output_type):
     #Checks output type and returns correct data
     if output_type == 'np':
         return data
-    
     elif output_type == 'mne':
         info = mne.create_info(8, sfreq=v.SFREQ, ch_types= 'eeg', verbose=None)
         raw_arr = mne.io.RawArray(data, info) 
@@ -48,11 +47,11 @@ def extract_eeg_data(valid_recs, data_type, output_type):
     '''
     assert (data_type in v.DATA_TYPES)
 
-    if data_type == "raw":
+    if data_type == 'raw':
         dir = v.DIR_RAW
-    elif data_type == "ica":
+    elif data_type == 'ica':
         dir = v.DIR_ICA_FILTERED
-    elif data_type == "init":
+    elif data_type == 'init':
         dir = v.DIR_INIT_FILTERED
     elif data_type == 'new_ica':
         dir = v.DIR_NEW_ICA
@@ -73,6 +72,27 @@ def extract_eeg_data(valid_recs, data_type, output_type):
             data = None
     return eeg_data
 
+def read_psd_data(filename):
+    return scipy.io.loadmat(filename)['psd_data']
+    
+def extract_psd_data(valid_recs):
+    '''
+    Loads psd data from the dataset.
+    '''
+    dir = v.DIR_PSD
+
+    psd_data = {}
+    for rec in valid_recs:
+        subject, session, run = rec.split('_')
+        f_name = os.path.join(dir, f'sub-{subject}_ses-{session}_run-{run}.mat')
+        try:
+            data = read_psd_data(f_name)
+            key = f"{subject}_{session}_{run}"
+            psd_data[key] = data
+        except:
+            print(f"ERROR 2) Failed to read data for recording {rec}")
+            data = None
+    return psd_data
 
 def multi_to_binary_classification(x_dict, y_dict):
     '''
@@ -98,7 +118,7 @@ def multi_to_binary_classification(x_dict, y_dict):
 
     return x_dict, y_dict
 
-
+# Christians
 def segment_data(x_dict, y_dict, epoch_duration=3):
     """
     Extracts epochs of given duration from each sample in x_dict.
@@ -133,7 +153,7 @@ def segment_data(x_dict, y_dict, epoch_duration=3):
 
     return x_epochs, y_epochs
 
-
+#Christians
 def kfold_split(x_epochs, y_epochs, n_splits=5, shuffle=True, random_state=None):
     """
     Perform k-fold cross-validation on a dataset of EEG epochs.
@@ -232,6 +252,7 @@ def split_dataset(x_dict, y_dict, kfold = True):
         print(f'\nSubject list: {subject_list}')
         subjects_train, subjects_test, mean_labels_train, mean_labels_test = train_test_split(subject_list, mean_labels_list, test_size= 0.2, random_state=42, stratify = mean_labels_list)
 
+        #Check no overlapping subjects
         for subject in subjects_train:
             if subject in subjects_test:
                 print(f'ERROR: Subject {subject} in both training and test list')    
@@ -240,6 +261,7 @@ def split_dataset(x_dict, y_dict, kfold = True):
         train_data_dict, train_labels_dict = reconstruct_dicts(subjects_train, x_dict, y_dict)
         test_data_dict, test_labels_dict = reconstruct_dicts(subjects_test, x_dict, y_dict)
 
+        #Check no overlapping subjects
         for key in train_data_dict.keys():
             if key in test_data_dict.keys():
                 print(f'ERROR: Key {key} in both training and test dicts')
@@ -254,6 +276,8 @@ def split_dataset(x_dict, y_dict, kfold = True):
         print(f'\nSubject list: {subject_list}')
         subjects, subjects_test, mean_labels, mean_labels_test = train_test_split(subject_list, mean_labels_list, test_size= 0.2, random_state=42, stratify = mean_labels_list)
         subjects_train, subjects_val, mean_labels_train, mean_labels_val = train_test_split(subjects, mean_labels, test_size=0.25, random_state=42, stratify = mean_labels)
+        
+        #Check no overlapping subjects
         for subject in subjects_train:
             if subject in subjects_test:
                 print(f'ERROR: Subject {subject} in both training and test list')
@@ -263,6 +287,7 @@ def split_dataset(x_dict, y_dict, kfold = True):
         test_data_dict, test_labels_dict = reconstruct_dicts(subjects_test, x_dict, y_dict)
         val_data_dict, val_labels_dict = reconstruct_dicts(subjects_val, x_dict, y_dict)
 
+        #Check no overlapping subjects
         for key in train_data_dict.keys():
             if key in test_data_dict.keys():
                 print(f'ERROR: Key {key} in both training and test dicts')
@@ -298,10 +323,12 @@ def dict_to_arr(data_dict, data_type):
     '''
     keys_list = list(data_dict.keys())
     
-    if data_type == 'ica' or data_type == 'raw' or data_type=='init':
+    if data_type == 'ica' or data_type == 'raw' or data_type == 'init':
         data_arr = np.empty((len(keys_list), v.NUM_CHANNELS, v.NUM_SAMPLES))
     elif data_type == 'new_ica':
         data_arr = np.empty((len(keys_list), v.NUM_CHANNELS, v.NEW_NUM_SAMPLES))
+    elif data_type == 'psd':
+        data_arr = np.empty((len(keys_list), v.NUM_CHANNELS, v.NUM_PSD_FREQS))
     i = 0
     for key in keys_list:
         data = data_dict[key]
