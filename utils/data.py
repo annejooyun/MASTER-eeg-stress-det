@@ -184,7 +184,7 @@ def kfold_split(x_epochs, y_epochs, n_splits=5, shuffle=True, random_state=None)
 def split_dataset(x_dict, y_dict, kfold = True):
     """
     Splits the dataset into training-, validation- (not for kfold) and test-sets.
-    Since we use a intra-personal model, the dataset should be split along subjects, not recordings.
+    The dataset is split along subjects, not recordings.
     This way it is ensured that one subjects recordings are uniquely in one of the data sets.
 
     In order to ensure balanced splits, a new "mean label" is calculated for each subject.
@@ -199,7 +199,7 @@ def split_dataset(x_dict, y_dict, kfold = True):
     - Validation consists of 20% of the participants
     - Test consists of 20% of the participants
     """
-
+    print('\n---- Splitting dataset along subjects ----')
     keys_list = list(x_dict.keys())
     
     #Creates a list of all subjects
@@ -229,23 +229,43 @@ def split_dataset(x_dict, y_dict, kfold = True):
     
     if kfold:
         #Dividing subjects between two datasets, as the training set will be used in kfold validation
+        print(f'\nSubject list: {subject_list}')
         subjects_train, subjects_test, mean_labels_train, mean_labels_test = train_test_split(subject_list, mean_labels_list, test_size= 0.2, random_state=42, stratify = mean_labels_list)
+
+        for subject in subjects_train:
+            if subject in subjects_test:
+                print(f'ERROR: Subject {subject} in both training and test list')    
         
         #Reconstructing train- and test-sets with corresponding data
         train_data_dict, train_labels_dict = reconstruct_dicts(subjects_train, x_dict, y_dict)
         test_data_dict, test_labels_dict = reconstruct_dicts(subjects_test, x_dict, y_dict)
 
+        for key in train_data_dict.keys():
+            if key in test_data_dict.keys():
+                print(f'ERROR: Key {key} in both training and test dicts')
+
+        print(f'\nKeys train: {train_data_dict.keys()}')
+        print(f'\nKeys test: {test_data_dict.keys()}')
+
         return train_data_dict, test_data_dict, train_labels_dict, test_labels_dict
 
     else:
         #Dividing subjects between the three datasets
+        print(f'\nSubject list: {subject_list}')
         subjects, subjects_test, mean_labels, mean_labels_test = train_test_split(subject_list, mean_labels_list, test_size= 0.2, random_state=42, stratify = mean_labels_list)
         subjects_train, subjects_val, mean_labels_train, mean_labels_val = train_test_split(subjects, mean_labels, test_size=0.25, random_state=42, stratify = mean_labels)
-        
+        for subject in subjects_train:
+            if subject in subjects_test:
+                print(f'ERROR: Subject {subject} in both training and test list')
+
         #Reconstructing train-,validation- and test-sets with corresponding data
         train_data_dict, train_labels_dict = reconstruct_dicts(subjects_train, x_dict, y_dict)
         test_data_dict, test_labels_dict = reconstruct_dicts(subjects_test, x_dict, y_dict)
         val_data_dict, val_labels_dict = reconstruct_dicts(subjects_val, x_dict, y_dict)
+
+        for key in train_data_dict.keys():
+            if key in test_data_dict.keys():
+                print(f'ERROR: Key {key} in both training and test dicts')
 
         return train_data_dict, test_data_dict, val_data_dict, train_labels_dict, test_labels_dict, val_labels_dict
 

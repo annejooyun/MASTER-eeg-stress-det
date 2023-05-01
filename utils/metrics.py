@@ -1,4 +1,3 @@
-from sklearn import metrics
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -166,47 +165,14 @@ def plot_confusion_matrix(
     plt.ylabel("True label", fontsize=12)
     return fig, ax
 
-
-def compute_metrics(y_true, y_pred):
-    #print(metrics.classification_report(y_true, y_pred))
-
-    conf_matrix = metrics.confusion_matrix(y_true, y_pred)
-    print('Confusion matrix:')
-    print(conf_matrix)
-
-    TP = conf_matrix[0,0]
-    TN = conf_matrix[1,1]
-    FN = conf_matrix[1,0]
-    FP = conf_matrix[0,1]
-
-    # Accuracy = TP/ (TP + TN)
-    accuracy = (TP+TN)/(TP+TN+FN+FP)
-
-    # Sensitivity = TP / (TP + FN)
-    if TP+FN < 1e-12:
-        sensitivity = 0
-        print("Null error in sensitivity")
-    else:
-        sensitivity = TP/(TP+FN)
-    #print(f'\n Sensitivity: {sensitivity}')
-
-    # Specificity = TN / (TN + FP)
-    if TN+FP < 1e-12:
-        specificity = 0
-        print("Null error in specificity")
-    else:  
-        specificity = TN/(TN+FP)
-    #print(f'\n Specificity: {specificity}')
-    performance = np.array([accuracy, sensitivity, specificity])*100
-    return np.round(performance, decimals=2)
     
 
 def plot_conf_matrix_and_stats(conf_matrix):
 
     TN, FP, FN, TP = conf_matrix.ravel()
     accuracy = (TP + TN) / (TP + TN + FP + FN) * 100
-    sensitivity = TP / (TP + FP) * 100
-    specificity = TN / (TN + FN) * 100
+    sensitivity = TP / (TP + FN) * 100
+    specificity = TN / (TN + FP) * 100
     
     # Plot confusion matrix
     fig, ax = plot_confusion_matrix(conf_mat=conf_matrix,
