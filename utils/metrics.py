@@ -168,7 +168,7 @@ def plot_confusion_matrix(
     
 
 def plot_conf_matrix_and_stats(conf_matrix):
-
+    
     TN, FP, FN, TP = conf_matrix.ravel()
     accuracy = (TP + TN) / (TP + TN + FP + FN) * 100
     sensitivity = TP / (TP + FN) * 100
@@ -178,7 +178,7 @@ def plot_conf_matrix_and_stats(conf_matrix):
     fig, ax = plot_confusion_matrix(conf_mat=conf_matrix,
                                     show_absolute=True,
                                     colorbar=True,
-                                    class_names = ['N-S','S'])
+                                    class_names = ['N-S', 'S'])
     for i in range(2):
         for j in range(2):
             ax.text(j, i, conf_matrix[i, j], ha="center", va="center", color="white" if conf_matrix[i, j] > conf_matrix.max() / 2 else "black")

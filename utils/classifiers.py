@@ -63,7 +63,7 @@ def knn_classification(train_data, test_data, train_labels, test_labels):
 def svm_classification(train_data, test_data, train_labels, test_labels):
     param_grid = {
         'C': [0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000, 100000, 1000000],
-        'kernel': ['rbf']
+        'kernel': ['linear', 'poly', 'rbf', 'sigmoid']
     }
     scaler = RobustScaler()
     train_data = scaler.fit_transform(train_data)
@@ -78,6 +78,7 @@ def svm_classification(train_data, test_data, train_labels, test_labels):
     print(svm_clf.best_estimator_)
     # fit the grid search to get the results
     results = svm_clf.cv_results_
+    print(svm_clf.best_params_)
 
     # extract the relevant scores
     C_values = results['param_C'].data
