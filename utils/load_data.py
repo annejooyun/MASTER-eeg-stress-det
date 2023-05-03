@@ -1,7 +1,7 @@
 import numpy as np
 
 from utils.data import extract_eeg_data, extract_psd_data, multi_to_binary_classification, split_dataset, dict_to_arr, epoch_data_and_labels
-from utils.labels import get_stai_labels, get_pss_labels
+from utils.labels import get_stai_labels, get_ss_labels
 from utils.valid_recs import get_valid_recs
 import utils.variables as v
 
@@ -22,7 +22,7 @@ def load_data(data_type, label_type, epoched = False, binary = True):
     if label_type == 'stai':
         y_dict_ = get_stai_labels(valid_recs) 
     elif label_type == 'pss':
-        y_dict_ = get_pss_labels(valid_recs)
+        y_dict_ = get_ss_labels(valid_recs)
     else:
         print('No such label type in data set')
 
@@ -88,7 +88,7 @@ def load_kfold_data(data_type, label_type, epoched = False, binary = True):
     if label_type == 'stai':
         y_dict_ = get_stai_labels(valid_recs) 
     elif label_type == 'pss':
-        y_dict_ = get_pss_labels(valid_recs)
+        y_dict_ = get_ss_labels(valid_recs)
     else:
         print('No such label type in data set')
 
@@ -147,7 +147,7 @@ def load_psd_data(label_type, binary = True):
     if label_type == 'stai':
         y_dict_ = get_stai_labels(valid_recs) 
     elif label_type == 'pss':
-        y_dict_ = get_pss_labels(valid_recs)
+        y_dict_ = get_ss_labels(valid_recs)
     else:
         print('No such label type in data set')
 
