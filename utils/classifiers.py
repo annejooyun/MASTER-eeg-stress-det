@@ -33,6 +33,7 @@ def knn_classification(train_data, test_data, train_labels, test_labels):
     y_true = test_labels
 
     print(knn_clf.best_estimator_)
+    print(knn_clf.best_params_)
     results = knn_clf.cv_results_
 
     # extract the relevant scores
@@ -76,10 +77,11 @@ def svm_classification(train_data, test_data, train_labels, test_labels):
     y_true = test_labels
 
     print(svm_clf.best_estimator_)
-    # fit the grid search to get the results
-    results = svm_clf.cv_results_
     print(svm_clf.best_params_)
 
+    # fit the grid search to get the results
+    results = svm_clf.cv_results_
+    
     # extract the relevant scores
     C_values = results['param_C'].data
     kernel_values = results['param_kernel'].data
