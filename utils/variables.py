@@ -23,7 +23,7 @@ NUM_PSD_FREQS = 129
 NEW_SFREQ = 128
 NEW_NUM_SAMPLES = 38400
 
-EPOCH_LENGTH = 1
+EPOCH_LENGTH = 0.1
 
 
 DATA_TYPES = ['raw', 'ica', 'init', 'new_ica', 'psd']

@@ -4,7 +4,7 @@ import mne_features
 import numpy as np
 
 import utils.variables as v
-
+import utils.variables_SAM40 as v_SAM40
 import numpy as np
 import scipy as sp
 
@@ -58,21 +58,25 @@ def kymatio_wave_scattering(data):
         features.append(features_for_fold)
     return features
 
-def time_series_features(data, new_ica):
+def time_series_features(data, new_ica, SAM40 = False):
     '''
     Compute the features peak-to-peak amplitude, variance and rms using the package mne_features.
     The data should be on the form (n_recordings, n_channels, n_samples)
     The output is on the form (n_trials*n_secs, n_channels*3)
     '''
-    if new_ica:
+    if SAM40: 
+        sfreq = v_SAM40.SFREQ
+    elif new_ica:
         sfreq = v.NEW_SFREQ
     else:
         sfreq = v.SFREQ
-    
+    print('SFREQ: ', sfreq)
     n_recordings = data.shape[0]
     n_samples = data.shape[2]
-    n_samples_per_epoch = int(n_samples/sfreq)
+    n_samples_per_epoch = int(sfreq*v.EPOCH_LENGTH)
+    print('Samp_per_epoch: ', n_samples_per_epoch)
     n_epochs = int(n_samples/n_samples_per_epoch)
+    print('Epochs: ', n_epochs)
     
     ptp_amp = np.zeros((n_recordings, v.NUM_CHANNELS, n_epochs))
     variance = np.zeros((n_recordings, v.NUM_CHANNELS, n_epochs))
@@ -89,8 +93,8 @@ def time_series_features(data, new_ica):
                 variance[i,j,k] = mne_features.univariate.compute_variance(data_epoch)
                 rms[i,j,k] = mne_features.univariate.compute_rms(data_epoch)
     
-    features = np.stack((ptp_amp, variance, rms), axis = -1)
-    n_epochs = features.shape[-2]
+    features = np.stack((ptp_amp, variance, rms))
+    print('featres shap: ', features.shape)
     features = features.reshape((-1, n_epochs*3))
     return features
 
