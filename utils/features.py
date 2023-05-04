@@ -93,7 +93,7 @@ def time_series_features(data, new_ica, SAM40 = False):
                 variance[i,j,k] = mne_features.univariate.compute_variance(data_epoch)
                 rms[i,j,k] = mne_features.univariate.compute_rms(data_epoch)
     
-    features = np.stack((ptp_amp, variance, rms))
+    features = np.stack((ptp_amp, variance, rms), axis = -1)
     features = features.reshape((-1, n_epochs*3))
     return features
 
