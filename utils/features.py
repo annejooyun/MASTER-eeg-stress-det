@@ -71,8 +71,11 @@ def time_series_features(data, new_ica):
     
     n_recordings = data.shape[0]
     n_samples = data.shape[2]
-    n_samples_per_epoch = int(n_samples/sfreq)
+    #n_samples_per_epoch = int(n_samples/sfreq)
+    n_samples_per_epoch = int(sfreq*v.EPOCH_LENGTH)
+    print(f"number of samples per epoch = {n_samples_per_epoch}")
     n_epochs = int(n_samples/n_samples_per_epoch)
+    print(f"n epochs (top): {n_epochs}")
     
     ptp_amp = np.zeros((n_recordings, v.NUM_CHANNELS, n_epochs))
     variance = np.zeros((n_recordings, v.NUM_CHANNELS, n_epochs))
@@ -91,6 +94,7 @@ def time_series_features(data, new_ica):
     
     features = np.stack((ptp_amp, variance, rms), axis = -1)
     n_epochs = features.shape[-2]
+    print(f"n epochs (bottom): {n_epochs}")
     features = features.reshape((-1, n_epochs*3))
     return features
 
