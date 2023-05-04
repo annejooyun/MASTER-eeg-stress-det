@@ -1,6 +1,6 @@
 import numpy as np
 from matplotlib import pyplot as plt
-from utils.metrics import compute_metrics
+import utils.metrics as m
 from utils.EEGModels import EEGNet,TSGLEEGNet, DeepConvNet, ShallowConvNet, TSGLEEGNet
 import utils.variables as v
 import matplotlib.pyplot as plt
