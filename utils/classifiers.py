@@ -1,23 +1,19 @@
-import numpy as np
-
-#from utils.metrics import compute_metrics
+import utils.metrics as m
 from utils.EEGModels import EEGNet,TSGLEEGNet, DeepConvNet, ShallowConvNet, TSGLEEGNet
 import utils.variables as v
+import matplotlib.pyplot as plt
 
-from sklearn.metrics import accuracy_score
-from sklearn.model_selection import train_test_split, GridSearchCV, PredefinedSplit
+from sklearn.model_selection import GridSearchCV, PredefinedSplit
 from sklearn.preprocessing import StandardScaler, MinMaxScaler, RobustScaler
 from sklearn import metrics
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import classification_report
+
 import plotly.graph_objects as go
+import numpy as np
 import tensorflow as tf
-from tensorflow.keras.callbacks import ModelCheckpoint
-
-
-
 
 
 def knn_classification(train_data, test_data, train_labels, test_labels):
@@ -37,6 +33,7 @@ def knn_classification(train_data, test_data, train_labels, test_labels):
     y_true = test_labels
 
     print(knn_clf.best_estimator_)
+    print(knn_clf.best_params_)
     results = knn_clf.cv_results_
 
     # extract the relevant scores
@@ -58,18 +55,16 @@ def knn_classification(train_data, test_data, train_labels, test_labels):
     plt.ylabel('Accuracy')
     plt.show()
 
-    print('KNN:')
-    performance = compute_metrics(y_true, y_pred)
-    print("Accuracy, Sensitivity, Specificity:")
-    print(performance)
+    conf_matrix = metrics.confusion_matrix(y_true, y_pred)
+    m.plot_conf_matrix_and_stats(conf_matrix)
     
 
 
 
 def svm_classification(train_data, test_data, train_labels, test_labels):
     param_grid = {
-        'C': [0.001, 0.001, 0.1, 1, 10, 100, 1000, 10000, 100000, 1000000],
-        'kernel': ['rbf']
+        'C': [0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000, 100000, 1000000],
+        'kernel': ['linear', 'poly', 'rbf', 'sigmoid']
     }
     scaler = RobustScaler()
     train_data = scaler.fit_transform(train_data)
@@ -82,9 +77,11 @@ def svm_classification(train_data, test_data, train_labels, test_labels):
     y_true = test_labels
 
     print(svm_clf.best_estimator_)
+    print(svm_clf.best_params_)
+
     # fit the grid search to get the results
     results = svm_clf.cv_results_
-
+    
     # extract the relevant scores
     C_values = results['param_C'].data
     kernel_values = results['param_kernel'].data
@@ -103,66 +100,9 @@ def svm_classification(train_data, test_data, train_labels, test_labels):
     plt.xlabel('Iteration')
     plt.ylabel('Accuracy')
     plt.show()
-    print('SVM:')
-    # print performance
-    performance = compute_metrics(y_true, y_pred)
-    print('Accuracy, Sensitivity, Specificity:')
-    print(performance)
-
-
-
-
-
-def nn_classification(data, label):
-    K.clear_session()
-    y_v = label
-    y_v = to_categorical(y_v)
-    x_train, x_test, y_train, y_test = train_test_split(
-        data, y_v, test_size=0.2, random_state=1)
-    x_train, x_val, y_train, y_val = train_test_split(
-        x_train, y_train, test_size=0.25, random_state=1)
-
-    def model_builder(hp):
-        model = models.Sequential()
-        model.add(Input(shape=(x_train.shape[1],)))
-
-        for i in range(hp.Int('layers', 2, 6)):
-            model.add(Dense(units=hp.Int('units_' + str(i), 32, 1024, step=32),
-                            activation=hp.Choice('act_' + str(i), ['relu', 'sigmoid'])))
-
-        model.add(Dense(v.N_CLASSES, activation='softmax', name='out'))
-
-        hp_learning_rate = hp.Choice('learning_rate', values=[1e-2, 1e-3, 1e-4])
-
-        model.compile(optimizer=opt.adam_v2.Adam(learning_rate=hp_learning_rate),
-                    loss="binary_crossentropy",
-                    metrics=['accuracy'])
-        return model
-
-
-    tuner = RandomSearch(
-        model_builder,
-        objective='val_accuracy',
-        max_trials=15,
-        executions_per_trial=2,
-        overwrite=True
-    )
-
-    tuner.search_space_summary()
-
-    tuner.search(x_train, y_train, epochs=50, validation_data=[x_val, y_val])
-
-    model = tuner.get_best_models(num_models=1)[0]
-
-    y_pred = model.predict(x_test)
-    y_true = y_test
-    y_pred = np.argmax(y_pred, axis=1)
-    y_true = np.argmax(y_true, axis=1)
-
-    scores_dnn = model.evaluate(x_test, y_test, verbose=0)
-
-    print(metrics.classification_report(y_true, y_pred))
-    print(metrics.confusion_matrix(y_true, y_pred))
+    
+    conf_matrix = metrics.confusion_matrix(y_true, y_pred)
+    m.plot_conf_matrix_and_stats(conf_matrix)
 
 
 

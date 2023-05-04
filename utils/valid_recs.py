@@ -4,7 +4,7 @@ import os
 
 
 import utils.variables as v
-from utils.data import read_eeg_data
+from utils.data import read_eeg_data, read_psd_data
 
 def generate_all_recs():
     """
@@ -47,6 +47,8 @@ def filter_valid_recs(recs, data_type, output_type):
         dir = v.DIR_INIT_FILTERED
     elif data_type == 'new_ica':
         dir = v.DIR_NEW_ICA
+    elif data_type == 'psd':
+        dir = v.DIR_PSD
     else:
         print(f'No data with data_type = {data_type} found')
         return 0
@@ -57,6 +59,16 @@ def filter_valid_recs(recs, data_type, output_type):
     for rec in recs:
         subject, session, run = rec.split('_')
         f_name = os.path.join(dir, f'sub-{subject}_ses-{session}_run-{run}.mat')
+        if data_type == 'psd':
+            try:
+                data = read_psd_data(f_name)
+                if data.shape[1] >= v.NUM_PSD_FREQS:
+                    valid_recs.append(rec)
+                else:
+                    print(f'{f_name} not valid file name')
+            except:
+                print(f"ERROR 1) Failed to read data for recording {rec}")
+                continue
         try:
             data = read_eeg_data(data_type, f_name, output_type)
             if output_type == 'mne' and data.n_times / data.info['sfreq'] >= 5 * 60:

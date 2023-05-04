@@ -5,7 +5,7 @@ import math
 
 import utils.variables as v
 
-def load_pss_scores(filename):
+def load_ss_scores(filename):
     """
     Load and binarize PSS (Perceived Stress Scale) scores from an Excel file.
     Parameters
@@ -27,7 +27,7 @@ def load_pss_scores(filename):
     return scores
 
 
-def filter_pss_labels(scores, valid_recs, low_cutoff, high_cutoff):
+def filter_ss_labels(scores, valid_recs, low_cutoff, high_cutoff):
     """
     Filter PSS (Perceived Stress Scale) scores by record ID.
     Parameters
@@ -67,7 +67,7 @@ def filter_pss_labels(scores, valid_recs, low_cutoff, high_cutoff):
     return labels
 
 
-def get_pss_labels(valid_recs, filename=v.LABELS_PATH, low_cutoff = 3, high_cutoff = 7):
+def get_ss_labels(valid_recs, filename=v.LABELS_PATH, low_cutoff = 3, high_cutoff = 7):
     """
     Get filtered and binarized PSS (Perceived Stress Scale) scores for a list of valid record IDs.
     Parameters
@@ -85,8 +85,8 @@ def get_pss_labels(valid_recs, filename=v.LABELS_PATH, low_cutoff = 3, high_cuto
         A dictionary containing the filtered and binarized PSS scores, where the keys are record IDs and the
         values are the corresponding scores.
     """
-    scores = load_pss_scores(filename)
-    filtered_labels = filter_pss_labels(scores, valid_recs, low_cutoff, high_cutoff)
+    scores = load_ss_scores(filename)
+    filtered_labels = filter_ss_labels(scores, valid_recs, low_cutoff, high_cutoff)
     return filtered_labels
 
 
