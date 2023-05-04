@@ -107,6 +107,59 @@ def svm_classification(train_data, test_data, train_labels, test_labels):
     m.plot_conf_matrix_and_stats(conf_matrix)
 
 
+def svm_classification_SAM40(train_data, test_data, SAM40_data, train_labels, test_labels, SAM40_labels):
+    param_grid = {
+        'C': [0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000, 100000, 1000000],
+        'kernel': ['linear', 'poly', 'rbf', 'sigmoid']
+    }
+    scaler = RobustScaler()
+    train_data = scaler.fit_transform(train_data)
+    test_data = scaler.transform(test_data)
+
+    SAM40_scaler = RobustScaler()
+    SAM40_data = SAM40_scaler.fit_transform(SAM40_data)
+
+    svm_clf = GridSearchCV(SVC(), param_grid, refit=True, n_jobs=-1, cv = 10)
+    svm_clf.fit(train_data, train_labels)
+
+    y_pred = svm_clf.predict(test_data)
+    y_true = test_labels
+
+    print(svm_clf.best_estimator_)
+    print(svm_clf.best_params_)
+
+    # fit the grid search to get the results
+    results = svm_clf.cv_results_
+    
+    # extract the relevant scores
+    C_values = results['param_C'].data
+    kernel_values = results['param_kernel'].data
+    accuracies = results['mean_test_score']
+
+    print('Number of results:', len(accuracies))
+    #print('C_values:', C_values)
+    #print('kernel_values:', kernel_values)
+    print('accuracies:', accuracies)
+    # plot the results
+    plt.figure(2)
+    plt.plot(
+        range(len(accuracies)),
+        accuracies
+    )
+    plt.xlabel('Iteration')
+    plt.ylabel('Accuracy')
+    plt.show()
+    
+    conf_matrix = metrics.confusion_matrix(y_true, y_pred)
+    m.plot_conf_matrix_and_stats(conf_matrix)
+
+    #SAM40
+
+    y_pred_SAM40 = svm_clf.predict(SAM40_data)
+    y_true_SAM40 = SAM40_labels
+    conf_matrix_SAM40 = metrics.confusion_matrix(y_true_SAM40, y_pred_SAM40)
+    m.plot_conf_matrix_and_stats(conf_matrix_SAM40)
+
 
 def EEGNet_classification(train_data, test_data, val_data, train_labels, test_labels, val_labels, data_type, epoched = True):
 

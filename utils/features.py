@@ -5,6 +5,10 @@ import numpy as np
 
 import utils.variables as v
 import utils.variables_SAM40 as v_SAM40
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
 import numpy as np
 import scipy as sp
 
@@ -64,7 +68,11 @@ def time_series_features(data, new_ica, SAM40 = False):
     The data should be on the form (n_recordings, n_channels, n_samples)
     The output is on the form (n_trials*n_secs, n_channels*3)
     '''
+<<<<<<< Updated upstream
     if SAM40: 
+=======
+    if SAM40:
+>>>>>>> Stashed changes
         sfreq = v_SAM40.SFREQ
     elif new_ica:
         sfreq = v.NEW_SFREQ
@@ -73,10 +81,17 @@ def time_series_features(data, new_ica, SAM40 = False):
     print('SFREQ: ', sfreq)
     n_recordings = data.shape[0]
     n_samples = data.shape[2]
+<<<<<<< Updated upstream
     n_samples_per_epoch = int(sfreq*v.EPOCH_LENGTH)
     print('Samp_per_epoch: ', n_samples_per_epoch)
     n_epochs = int(n_samples/n_samples_per_epoch)
     print('Epochs: ', n_epochs)
+=======
+    n_samples_per_epoch = int(sfreq*v.EPOCH_LENGTH) #n_seconds = 25 250
+    print(n_samples_per_epoch)
+    n_epochs = int(n_samples/n_samples_per_epoch)
+    print(n_epochs)
+>>>>>>> Stashed changes
     
     ptp_amp = np.zeros((n_recordings, v.NUM_CHANNELS, n_epochs))
     variance = np.zeros((n_recordings, v.NUM_CHANNELS, n_epochs))
@@ -94,7 +109,10 @@ def time_series_features(data, new_ica, SAM40 = False):
                 rms[i,j,k] = mne_features.univariate.compute_rms(data_epoch)
     
     features = np.stack((ptp_amp, variance, rms))
+<<<<<<< Updated upstream
     print('featres shap: ', features.shape)
+=======
+>>>>>>> Stashed changes
     features = features.reshape((-1, n_epochs*3))
     return features
 
