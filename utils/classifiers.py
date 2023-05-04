@@ -1,9 +1,9 @@
 import numpy as np
 from matplotlib import pyplot as plt
-from utils.metrics import compute_metrics
 from utils.EEGModels import EEGNet,TSGLEEGNet, DeepConvNet, ShallowConvNet, TSGLEEGNet
 import utils.variables as v
 import matplotlib.pyplot as plt
+import utils.metrics as m
 
 from sklearn.model_selection import GridSearchCV, PredefinedSplit
 from sklearn.preprocessing import StandardScaler, MinMaxScaler, RobustScaler
@@ -112,21 +112,25 @@ def svm_classification_SAM40(train_data, test_data, SAM40_data, train_labels, te
         'C': [0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000, 100000, 1000000],
         'kernel': ['linear', 'poly', 'rbf', 'sigmoid']
     }
+    print('Scaling training and testing data')
     scaler = RobustScaler()
     train_data = scaler.fit_transform(train_data)
     test_data = scaler.transform(test_data)
 
+    print('Scaling SAM40 data')
     SAM40_scaler = RobustScaler()
     SAM40_data = SAM40_scaler.fit_transform(SAM40_data)
 
+    print('Finding the best model')
     svm_clf = GridSearchCV(SVC(), param_grid, refit=True, n_jobs=-1, cv = 10)
     svm_clf.fit(train_data, train_labels)
 
-    y_pred = svm_clf.predict(test_data)
-    y_true = test_labels
-
     print(svm_clf.best_estimator_)
     print(svm_clf.best_params_)
+
+    print('Predicting on test data')
+    y_pred = svm_clf.predict(test_data)
+    y_true = test_labels
 
     # fit the grid search to get the results
     results = svm_clf.cv_results_
@@ -154,7 +158,7 @@ def svm_classification_SAM40(train_data, test_data, SAM40_data, train_labels, te
     m.plot_conf_matrix_and_stats(conf_matrix)
 
     #SAM40
-
+    print('Predicting on SAM40 data')
     y_pred_SAM40 = svm_clf.predict(SAM40_data)
     y_true_SAM40 = SAM40_labels
     conf_matrix_SAM40 = metrics.confusion_matrix(y_true_SAM40, y_pred_SAM40)
