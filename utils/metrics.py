@@ -131,6 +131,7 @@ def plot_confusion_matrix(
                         if normed_conf_mat[i, j] > 1 * fontcolor_threshold
                         else "black"
                     ),
+                    fontsize = 20,
                 )
             else:
                 ax.text(
@@ -142,13 +143,14 @@ def plot_confusion_matrix(
                     color="white"
                     if conf_mat[i, j] > np.max(conf_mat) * fontcolor_threshold
                     else "black",
+                    fontsize=20
                 )
     if class_names is not None:
         tick_marks = np.arange(len(class_names))
         plt.xticks(
-            tick_marks, class_names, rotation=45, ha="right", rotation_mode="anchor"
+            tick_marks, class_names, fontsize  = 16
         )
-        plt.yticks(tick_marks, class_names)
+        plt.yticks(tick_marks, class_names, fontsize = 16)
 
     if hide_spines:
         ax.spines["right"].set_visible(False)
@@ -161,8 +163,8 @@ def plot_confusion_matrix(
         ax.axes.get_yaxis().set_ticks([])
         ax.axes.get_xaxis().set_ticks([])
 
-    plt.xlabel("Predicted label", fontsize=12)
-    plt.ylabel("True label", fontsize=12)
+    plt.xlabel("Predicted label", fontsize=20)
+    plt.ylabel("True label", fontsize=20)
     return fig, ax
 
     
@@ -178,17 +180,18 @@ def plot_conf_matrix_and_stats(conf_matrix):
     fig, ax = plot_confusion_matrix(conf_mat=conf_matrix,
                                     show_absolute=True,
                                     colorbar=True,
-                                    class_names = ['N-S', 'S'])
-    for i in range(2):
+                                    class_names = ['N-S', 'S'],
+                                    )
+    '''for i in range(2):
         for j in range(2):
-            ax.text(j, i, conf_matrix[i, j], ha="center", va="center", color="white" if conf_matrix[i, j] > conf_matrix.max() / 2 else "black")
+            ax.text(j, i, conf_matrix[i, j], ha="center", va="center", color="white" if conf_matrix[i, j] > conf_matrix.max() / 2 else "black")'''
 
     # Add accuracy, sensitivity, and specificity below confusion matrix
     textstr = f"Accuracy: {round(accuracy,2)}% \nSensitivity: {round(sensitivity,2)}% \nSpecificity: {round(specificity,2)}%"
     props = dict(boxstyle='round', facecolor='white', alpha=0.5)
     xpos = 0.5
-    ypos = -0.2
-    ax.text(xpos, ypos, textstr, transform=ax.transAxes, fontsize=12,
+    ypos = -0.3
+    ax.text(xpos, ypos, textstr, transform=ax.transAxes, fontsize=20,
             verticalalignment='top', bbox=props, ha='center')
 
     plt.show()
