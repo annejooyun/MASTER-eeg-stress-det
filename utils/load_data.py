@@ -182,7 +182,7 @@ def load_psd_data(label_type, binary = True):
 
 
 
-def load_and_shape_data(data_type, label_type, feature, kfold, new_ica = False):
+def load_and_shape_data(data_type, label_type, feature_type, kfold, new_ica = False):
     #Load data
     if kfold:
         train_data, test_data, train_labels, test_labels = load_kfold_data(data_type, label_type, epoched = False, binary = True)
@@ -195,21 +195,7 @@ def load_and_shape_data(data_type, label_type, feature, kfold, new_ica = False):
     print(f'Section of non-stressed in test set: {np.sum(test_labels == 0)/len(test_labels)}')
 
 
-    if feature:
-        #Reshape labels to fit (n_recordings*n_channels, 1)
-        train_labels = np.repeat(train_labels, repeats = v.NUM_CHANNELS, axis = 0).reshape((train_data.shape[0]*v.NUM_CHANNELS,1))
-        train_labels = train_labels.ravel()
-
-        test_labels = np.repeat(test_labels,repeats = v.NUM_CHANNELS, axis = 0).reshape((test_data.shape[0]*v.NUM_CHANNELS,1))
-        test_labels = test_labels.ravel()
-        
-        #Extract features
-        #time_series_features, fractal_features, entropy_features, hjorth_features, freq_band_features, kymatio_wave_scattering
-        train_data = f.time_series_features(train_data, new_ica)
-        test_data = f.time_series_features(test_data, new_ica)
-
-        return train_data, test_data, train_labels, test_labels
-    else:
+    if feature_type == None:
         #Reshape data
         train_data = np.reshape(train_data, (train_data.shape[0]*train_data.shape[1], train_data.shape[2]))
         train_labels = np.repeat(train_labels, repeats = 8, axis = 1).reshape(-1,1)
@@ -219,6 +205,22 @@ def load_and_shape_data(data_type, label_type, feature, kfold, new_ica = False):
         test_labels = np.repeat(test_labels, repeats = 8, axis = 1).reshape(-1,1)
         test_labels = test_labels.ravel()
         return train_data, test_data, train_labels, test_labels
+    else:
+        #Reshape labels to fit (n_recordings*n_channels, 1)
+        train_labels = np.repeat(train_labels, repeats = v.NUM_CHANNELS, axis = 0).reshape((train_data.shape[0]*v.NUM_CHANNELS,1))
+        train_labels = train_labels.ravel()
+
+        test_labels = np.repeat(test_labels,repeats = v.NUM_CHANNELS, axis = 0).reshape((test_data.shape[0]*v.NUM_CHANNELS,1))
+        test_labels = test_labels.ravel()
+        
+        #Extract features
+        #time_series_features, fractal_features, entropy_features, hjorth_features, freq_band_features, kymatio_wave_scattering
+        train_data = feature_type(train_data, new_ica)
+        test_data = feature_type(test_data, new_ica)
+
+        return train_data, test_data, train_labels, test_labels
+    
+        
 
 def load_and_shape_psd_data(label_type):
     train_data, test_data, train_labels, test_labels = ld.load_psd_data(label_type, binary = True)
