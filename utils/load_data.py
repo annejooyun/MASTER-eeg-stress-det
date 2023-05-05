@@ -4,7 +4,8 @@ from utils.data import extract_eeg_data, extract_psd_data, multi_to_binary_class
 from utils.labels import get_stai_labels, get_ss_labels
 from utils.valid_recs import get_valid_recs
 import utils.variables as v
-
+import utils.features as f
+import utils.load_SAM40_data as ld_SAM40
 
 
 
@@ -74,7 +75,6 @@ def load_data(data_type, label_type, epoched = False, binary = True):
 
     return train_data, test_data, val_data, train_labels, test_labels, val_labels
 
-
 def load_kfold_data(data_type, label_type, epoched = False, binary = True):
      # Loads valid recording into valid_recs
     valid_recs = get_valid_recs(data_type=data_type, output_type = 'np')
@@ -130,8 +130,6 @@ def load_kfold_data(data_type, label_type, epoched = False, binary = True):
 
     return train_data, test_data, train_labels, test_labels
 
-
-
 def load_psd_data(label_type, binary = True):
 
     data_type = 'psd'
@@ -180,3 +178,88 @@ def load_psd_data(label_type, binary = True):
     print(f"Shape of test labels set: {test_labels.shape}")
 
     return train_data, test_data, train_labels, test_labels
+
+
+
+
+def load_and_shape_data(data_type, label_type, feature, kfold, new_ica = False):
+    #Load data
+    if kfold:
+        train_data, test_data, train_labels, test_labels = load_kfold_data(data_type, label_type, epoched = False, binary = True)
+    else:
+        train_data, test_data, val_data, train_labels, test_labels, val_labels = load_data(data_type, label_type, epoched = True, binary = True)
+        return train_data, test_data, val_data, train_labels, test_labels, val_labels
+    
+    print('\n---- Balanced dataset? ----')
+    print(f'Section of non-stressed in train set: {np.sum(train_labels == 0)/len(train_labels)}')
+    print(f'Section of non-stressed in test set: {np.sum(test_labels == 0)/len(test_labels)}')
+
+
+    if feature:
+        #Reshape labels to fit (n_recordings*n_channels, 1)
+        train_labels = np.repeat(train_labels, repeats = v.NUM_CHANNELS, axis = 0).reshape((train_data.shape[0]*v.NUM_CHANNELS,1))
+        train_labels = train_labels.ravel()
+
+        test_labels = np.repeat(test_labels,repeats = v.NUM_CHANNELS, axis = 0).reshape((test_data.shape[0]*v.NUM_CHANNELS,1))
+        test_labels = test_labels.ravel()
+        
+        #Extract features
+        #time_series_features, fractal_features, entropy_features, hjorth_features, freq_band_features, kymatio_wave_scattering
+        train_data = f.time_series_features(train_data, new_ica)
+        test_data = f.time_series_features(test_data, new_ica)
+
+        return train_data, test_data, train_labels, test_labels
+    else:
+        #Reshape data
+        train_data = np.reshape(train_data, (train_data.shape[0]*train_data.shape[1], train_data.shape[2]))
+        train_labels = np.repeat(train_labels, repeats = 8, axis = 1).reshape(-1,1)
+        train_labels = train_labels.ravel()
+
+        test_data = np.reshape(test_data, (test_data.shape[0]*test_data.shape[1],test_data.shape[2]))
+        test_labels = np.repeat(test_labels, repeats = 8, axis = 1).reshape(-1,1)
+        test_labels = test_labels.ravel()
+        return train_data, test_data, train_labels, test_labels
+
+def load_and_shape_psd_data(label_type):
+    train_data, test_data, train_labels, test_labels = ld.load_psd_data(label_type, binary = True)
+    train_data = np.reshape(train_data, (train_data.shape[0]*train_data.shape[1], train_data.shape[2]))
+    train_labels = np.repeat(train_labels, repeats = 8, axis = 1).reshape(-1,1)
+    train_labels = train_labels.ravel()
+
+    test_data = np.reshape(test_data, (test_data.shape[0]*test_data.shape[1],test_data.shape[2]))
+    test_labels = np.repeat(test_labels, repeats = 8, axis = 1).reshape(-1,1)
+    test_labels = test_labels.ravel()
+    
+    return train_data, test_data, train_labels, test_labels
+
+def load_and_shape_SAM40_data():
+    #Load the SAM40 dataset to be used as test data/label
+    selected_channels_names = ['Fp2', 'F4', 'FC6', 'T8', 'Oz', 'O1', 'C3', 'FT9']
+    dataset_SAM40_ = ld_SAM40.load_dataset('raw', 'Arithmetic')
+    channels = ld_SAM40.load_channels()
+
+    #Extract only the same channels
+    selected_chan_index = [channels.index(elem) for elem in selected_channels_names]
+    selected_channels_dataset = np.array([dataset_SAM40_[:,i,:] for i in selected_chan_index])
+    selected_channels_dataset = np.reshape(selected_channels_dataset, (120,8,3200))
+
+    #Compute time_series_features for SAM40
+    test_data_SAM40 = f.time_series_features(selected_channels_dataset, False, SAM40=True)
+
+    #Load SAM40 labels 
+    labels_ = ld_SAM40.load_labels()
+    labels = pd.concat([labels_['t1_math'], labels_['t2_math'],
+                    labels_['t3_math']]).to_numpy()
+    
+    #Change labels from T/F to 1/0
+    for i in range(len(labels)):
+        if labels[i]:
+            labels[i] = 1
+        else:
+            labels[i] = 0
+
+    test_labels_SAM40 = np.repeat(labels, test_data_SAM40.shape[0]//labels.shape[0])
+
+    print(f'SAM40 test data shape: {test_data_SAM40.shape}')
+    print(f'SAM40 test labels shape: {test_labels_SAM40.shape}')
+    return test_data_SAM40, test_labels_SAM40
