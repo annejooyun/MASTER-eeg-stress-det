@@ -41,6 +41,8 @@ def filter_valid_recs(recs, data_type, output_type):
     """
     if data_type == 'raw':
         dir = v.DIR_RAW
+    elif data_type == '128Hz_raw':
+        dir = v.DIR_128HZ_RAW
     elif data_type == 'ica':
         dir = v.DIR_ICA_FILTERED
     elif data_type == 'init':
@@ -77,6 +79,8 @@ def filter_valid_recs(recs, data_type, output_type):
                 if (data_type=='ica' or data_type=='raw' or data_type=='init') and data.shape[1] >= v.NUM_SAMPLES:
                     valid_recs.append(rec)
                 if data_type == 'new_ica' and data.shape[1]>= v.NEW_NUM_SAMPLES:
+                    valid_recs.append(rec)
+                if data_type == '128Hz_raw' and data.shape[1] >= 5*60*128:
                     valid_recs.append(rec)
             else:
                 print(f'{f_name} not valid file name')

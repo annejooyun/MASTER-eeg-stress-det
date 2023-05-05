@@ -13,6 +13,8 @@ def read_eeg_data(data_type, filename, output_type):
     #Assoociating correct data_key to the inputted data_type
     if data_type == 'raw':
         data_key = 'raw_eeg_data'
+    elif data_type == '128Hz_raw':
+        data_key = 'downsampled_raw'
     elif data_type== 'ica' or data_type == 'init' or data_type == 'new_ica':
         data_key = 'Clean_data'
     else:
@@ -49,6 +51,8 @@ def extract_eeg_data(valid_recs, data_type, output_type):
 
     if data_type == 'raw':
         dir = v.DIR_RAW
+    elif data_type == '128Hz_raw':
+        dir = v.DIR_128HZ_RAW
     elif data_type == 'ica':
         dir = v.DIR_ICA_FILTERED
     elif data_type == 'init':
@@ -327,6 +331,8 @@ def dict_to_arr(data_dict, data_type):
         data_arr = np.empty((len(keys_list), v.NUM_CHANNELS, v.NUM_SAMPLES))
     elif data_type == 'new_ica':
         data_arr = np.empty((len(keys_list), v.NUM_CHANNELS, v.NEW_NUM_SAMPLES))
+    elif data_type == '128Hz_raw':
+        data_arr = np.empty((len(keys_list), v.NUM_CHANNELS, 5*60*128))
     elif data_type == 'psd':
         data_arr = np.empty((len(keys_list), v.NUM_CHANNELS, v.NUM_PSD_FREQS))
     i = 0
