@@ -95,6 +95,7 @@ def time_series_features(data, new_ica, SAM40 = False):
     
     features = np.stack((ptp_amp, variance, rms), axis = -1)
     features = features.reshape((-1, n_epochs*3))
+    print(f'Features shape: {features.shape}')
     return features
 
 def fractal_features(data, new_ica):
