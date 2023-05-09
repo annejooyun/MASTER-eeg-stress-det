@@ -163,8 +163,8 @@ def plot_confusion_matrix(
         ax.axes.get_yaxis().set_ticks([])
         ax.axes.get_xaxis().set_ticks([])
 
-    plt.xlabel("Predicted label", fontsize=20)
-    plt.ylabel("True label", fontsize=20)
+    plt.xlabel("Predicted label", fontsize=16)
+    plt.ylabel("True label", fontsize=18)
     return fig, ax
 
     
@@ -190,8 +190,8 @@ def plot_conf_matrix_and_stats(conf_matrix):
     textstr = f"Accuracy: {round(accuracy,2)}% \nSensitivity: {round(sensitivity,2)}% \nSpecificity: {round(specificity,2)}%"
     props = dict(boxstyle='round', facecolor='white', alpha=0.5)
     xpos = 0.5
-    ypos = -0.3
-    ax.text(xpos, ypos, textstr, transform=ax.transAxes, fontsize=20,
+    ypos = -0.2
+    ax.text(xpos, ypos, textstr, transform=ax.transAxes, fontsize=16,
             verticalalignment='top', bbox=props, ha='center')
 
     plt.show()
