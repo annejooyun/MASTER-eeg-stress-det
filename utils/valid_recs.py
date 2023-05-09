@@ -47,6 +47,8 @@ def filter_valid_recs(recs, data_type, output_type):
         dir = v.DIR_ICA_FILTERED
     elif data_type == 'init':
         dir = v.DIR_INIT_FILTERED
+    elif data_type == 'new_init':
+        dir = v.DIR_NEW_INIT_FILTERED
     elif data_type == 'new_ica':
         dir = v.DIR_NEW_ICA
     elif data_type == 'psd':
@@ -76,7 +78,7 @@ def filter_valid_recs(recs, data_type, output_type):
             if output_type == 'mne' and data.n_times / data.info['sfreq'] >= 5 * 60:
                 valid_recs.append(rec)
             elif output_type == 'np':
-                if (data_type=='ica' or data_type=='raw' or data_type=='init') and data.shape[1] >= v.NUM_SAMPLES:
+                if (data_type=='ica' or data_type=='raw' or data_type=='init' or data_type=='new_init') and data.shape[1] >= v.NUM_SAMPLES:
                     valid_recs.append(rec)
                 if data_type == 'new_ica' and data.shape[1]>= v.NEW_NUM_SAMPLES:
                     valid_recs.append(rec)

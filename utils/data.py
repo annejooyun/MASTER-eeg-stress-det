@@ -15,7 +15,7 @@ def read_eeg_data(data_type, filename, output_type):
         data_key = 'raw_eeg_data'
     elif data_type == '128Hz_raw':
         data_key = 'downsampled_raw'
-    elif data_type== 'ica' or data_type == 'init' or data_type == 'new_ica':
+    elif data_type== 'ica' or data_type == 'init' or data_type == 'new_init' or data_type == 'new_ica':
         data_key = 'Clean_data'
     else:
         print(f'No data with data_type = {data_type} found')
@@ -57,6 +57,8 @@ def extract_eeg_data(valid_recs, data_type, output_type):
         dir = v.DIR_ICA_FILTERED
     elif data_type == 'init':
         dir = v.DIR_INIT_FILTERED
+    elif data_type == 'new_init':
+        dir = v.DIR_NEW_INIT_FILTERED
     elif data_type == 'new_ica':
         dir = v.DIR_NEW_ICA
     else:
