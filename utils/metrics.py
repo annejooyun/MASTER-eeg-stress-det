@@ -141,7 +141,8 @@ def plot_confusion_matrix(
                     va="center",
                     ha="center",
                     color="white"
-                    if conf_mat[i, j] > np.max(conf_mat) * fontcolor_threshold
+                    #if conf_mat[i, j] > np.max(conf_mat) * fontcolor_threshold
+                    if conf_mat[i, j] > 28
                     else "black",
                     fontsize=20
                 )
