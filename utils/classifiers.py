@@ -270,8 +270,7 @@ def EEGNet_classification(train_data, test_data, val_data, train_labels, test_la
 
     # plot the confusion matrices for both classifiers
     conf_matrix = metrics.confusion_matrix(test_labels,preds)
-    print(conf_matrix)
-    return probs
+    m.plot_conf_matrix_and_stats(conf_matrix)
 
 def kfold_EEGNet_classification(train_data, test_data, train_labels, test_labels, n_folds, data_type, epoched = True):
 
@@ -326,7 +325,8 @@ def kfold_EEGNet_classification(train_data, test_data, train_labels, test_labels
         total_accuracy += acc
         print("Classification accuracy: %f " % (acc))
 
-        print(classification_report(test_labels, preds))
+        conf_matrix = metrics.confusion_matrix(test_labels, preds)
+        m.plot_conf_matrix_and_stats(conf_matrix)
         
         # Plot Loss/Accuracy over time
         # Create figure with secondary y-axis
@@ -419,8 +419,7 @@ def TSGL_classification(train_data, test_data, val_data, train_labels, test_labe
 
     # plot the confusion matrices for both classifiers
     conf_matrix = metrics.confusion_matrix(test_labels,preds)
-    print(conf_matrix)
-    return probs
+    m.plot_conf_matrix_and_stats(conf_matrix)
 
 def kfold_TSGL_classification(train_data, test_data, train_labels, test_labels, n_folds, data_type, epoched = True):
 
@@ -474,7 +473,8 @@ def kfold_TSGL_classification(train_data, test_data, train_labels, test_labels, 
         total_accuracy += acc
         print("Classification accuracy: %f " % (acc))
 
-        print(classification_report(test_labels, preds))
+        conf_matrix = metrics.confusion_matrix(test_labels, preds)
+        m.plot_conf_matrix_and_stats(conf_matrix)
         
         # Plot Loss/Accuracy over time
         # Create figure with secondary y-axis
@@ -540,12 +540,6 @@ def DeepConvNet_classification(train_data, test_data, val_data, train_labels, te
     acc         = np.mean(preds == test_labels)
     print("Classification accuracy: %f " % (acc))
 
-    # print performance
-    performance = compute_metrics(test_labels, preds)
-    print("Accuracy, Sensitivity, Specificyty:\n")
-    print(performance)
-
-    
     # Plot Loss/Accuracy over time
     # Create figure with secondary y-axis
     fig = make_subplots(specs=[[{"secondary_y": True}]])
@@ -566,8 +560,7 @@ def DeepConvNet_classification(train_data, test_data, val_data, train_labels, te
 
     # plot the confusion matrices for both classifiers
     conf_matrix = metrics.confusion_matrix(test_labels,preds)
-    print(conf_matrix)
-    return probs
+    m.plot_conf_matrix_and_stats(conf_matrix)
 
 def kfold_DeepConvNet_classification(train_data, test_data, train_labels, test_labels, n_folds, data_type, epoched = True):
     if epoched:
@@ -620,7 +613,8 @@ def kfold_DeepConvNet_classification(train_data, test_data, train_labels, test_l
         total_accuracy += acc
         print("Classification accuracy: %f " % (acc))
 
-        print(classification_report(test_labels, preds))
+        conf_matrix = metrics.confusion_matrix(test_labels, preds)
+        m.plot_conf_matrix_and_stats(conf_matrix)
         
         # Plot Loss/Accuracy over time
         # Create figure with secondary y-axis
@@ -687,11 +681,6 @@ def ShallowConvNet_classification(train_data, test_data, val_data, train_labels,
     acc         = np.mean(preds == test_labels)
     print("Classification accuracy: %f " % (acc))
 
-    # print performance
-    performance = compute_metrics(test_labels, preds)
-    print("Accuracy, Sensitivity, Specificyty:\n")
-    print(performance)
-
     
     # Plot Loss/Accuracy over time
     # Create figure with secondary y-axis
@@ -712,9 +701,8 @@ def ShallowConvNet_classification(train_data, test_data, val_data, train_labels,
 
 
     # plot the confusion matrices for both classifiers
-    conf_matrix = metrics.confusion_matrix(test_labels,preds)
-    print(conf_matrix)
-    return probs
+    conf_matrix = metrics.confusion_matrix(test_labels, preds)
+    m.plot_conf_matrix_and_stats(conf_matrix)
 
 def kfold_ShallowConvNet_classification(train_data, test_data, train_labels, test_labels, n_folds, data_type, epoched = True):
     
@@ -768,7 +756,8 @@ def kfold_ShallowConvNet_classification(train_data, test_data, train_labels, tes
         total_accuracy += acc
         print("Classification accuracy: %f " % (acc))
 
-        print(classification_report(test_labels, preds))
+        conf_matrix = metrics.confusion_matrix(test_labels, preds)
+        m.plot_conf_matrix_and_stats(conf_matrix)
         
         # Plot Loss/Accuracy over time
         # Create figure with secondary y-axis
