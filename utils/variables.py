@@ -28,7 +28,7 @@ NEW_NUM_SAMPLES = 38400
 #For downsampled raw
 DOWNSAMPLED_SFREQ = 128
 
-EPOCH_LENGTH = 0.1
+EPOCH_LENGTH = 1
 
 
 DATA_TYPES = ['raw','128Hz_raw', 'ica', 'init', 'new_init', 'new_ica', 'psd']

@@ -11,11 +11,12 @@ from sklearn import metrics
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.model_selection import StratifiedKFold
-from sklearn.metrics import classification_report
 
 import plotly.graph_objects as go
 import numpy as np
 import tensorflow as tf
+from tensorflow.keras.callbacks import ModelCheckpoint
+import plotly.subplots as p
 
 
 def knn_classification(train_data, test_data, train_labels, test_labels):
@@ -252,7 +253,7 @@ def EEGNet_classification(train_data, test_data, val_data, train_labels, test_la
     
     # Plot Loss/Accuracy over time
     # Create figure with secondary y-axis
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    fig = p.make_subplots(specs=[[{"secondary_y": True}]])
     # Add traces
     fig.add_trace(go.Scatter( y=history.history['val_loss'], name="val_loss"), secondary_y=False)
     fig.add_trace(go.Scatter( y=history.history['loss'], name="loss"), secondary_y=False)
@@ -330,7 +331,7 @@ def kfold_EEGNet_classification(train_data, test_data, train_labels, test_labels
         
         # Plot Loss/Accuracy over time
         # Create figure with secondary y-axis
-        fig = make_subplots(specs=[[{"secondary_y": True}]])
+        fig = p.make_subplots(specs=[[{"secondary_y": True}]])
         # Add traces
         fig.add_trace(go.Scatter( y=history.history['val_loss'], name="val_loss"), secondary_y=False)
         fig.add_trace(go.Scatter( y=history.history['loss'], name="loss"), secondary_y=False)
@@ -394,14 +395,14 @@ def TSGL_classification(train_data, test_data, val_data, train_labels, test_labe
     print("Classification accuracy: %f " % (acc))
 
     # print performance
-    performance = compute_metrics(test_labels, preds)
+    performance = p.compute_metrics(test_labels, preds)
     print("Accuracy, Sensitivity, Specificyty:\n")
     print(performance)
 
     
     # Plot Loss/Accuracy over time
     # Create figure with secondary y-axis
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    fig = p.make_subplots(specs=[[{"secondary_y": True}]])
     # Add traces
     fig.add_trace(go.Scatter( y=history.history['val_loss'], name="val_loss"), secondary_y=False)
     fig.add_trace(go.Scatter( y=history.history['loss'], name="loss"), secondary_y=False)
@@ -478,7 +479,7 @@ def kfold_TSGL_classification(train_data, test_data, train_labels, test_labels, 
         
         # Plot Loss/Accuracy over time
         # Create figure with secondary y-axis
-        fig = make_subplots(specs=[[{"secondary_y": True}]])
+        fig = p.make_subplots(specs=[[{"secondary_y": True}]])
         # Add traces
         fig.add_trace(go.Scatter( y=history.history['val_loss'], name="val_loss"), secondary_y=False)
         fig.add_trace(go.Scatter( y=history.history['loss'], name="loss"), secondary_y=False)
@@ -542,7 +543,7 @@ def DeepConvNet_classification(train_data, test_data, val_data, train_labels, te
 
     # Plot Loss/Accuracy over time
     # Create figure with secondary y-axis
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    fig = p.make_subplots(specs=[[{"secondary_y": True}]])
     # Add traces
     fig.add_trace(go.Scatter( y=history.history['val_loss'], name="val_loss"), secondary_y=False)
     fig.add_trace(go.Scatter( y=history.history['loss'], name="loss"), secondary_y=False)
@@ -618,7 +619,7 @@ def kfold_DeepConvNet_classification(train_data, test_data, train_labels, test_l
         
         # Plot Loss/Accuracy over time
         # Create figure with secondary y-axis
-        fig = make_subplots(specs=[[{"secondary_y": True}]])
+        fig = p.make_subplots(specs=[[{"secondary_y": True}]])
         # Add traces
         fig.add_trace(go.Scatter( y=history.history['val_loss'], name="val_loss"), secondary_y=False)
         fig.add_trace(go.Scatter( y=history.history['loss'], name="loss"), secondary_y=False)
@@ -684,7 +685,7 @@ def ShallowConvNet_classification(train_data, test_data, val_data, train_labels,
     
     # Plot Loss/Accuracy over time
     # Create figure with secondary y-axis
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    fig = p.make_subplots(specs=[[{"secondary_y": True}]])
     # Add traces
     fig.add_trace(go.Scatter( y=history.history['val_loss'], name="val_loss"), secondary_y=False)
     fig.add_trace(go.Scatter( y=history.history['loss'], name="loss"), secondary_y=False)
@@ -761,7 +762,7 @@ def kfold_ShallowConvNet_classification(train_data, test_data, train_labels, tes
         
         # Plot Loss/Accuracy over time
         # Create figure with secondary y-axis
-        fig = make_subplots(specs=[[{"secondary_y": True}]])
+        fig = p.make_subplots(specs=[[{"secondary_y": True}]])
         # Add traces
         fig.add_trace(go.Scatter( y=history.history['val_loss'], name="val_loss"), secondary_y=False)
         fig.add_trace(go.Scatter( y=history.history['loss'], name="loss"), secondary_y=False)

@@ -349,17 +349,19 @@ def dict_to_arr(data_dict, data_type):
 def epoch_data_and_labels(data, labels , sfreq = 128):
     
     # Calculate the number of samples per epoch
-    samples_per_epoch = v.EPOCH_LENGTH * sfreq
+    samples_per_epoch = int(v.EPOCH_LENGTH * sfreq)
 
     # Get the shape of the data
     n_recordings, n_channels, n_total_time_steps = data.shape
+    print(f'data shape {data.shape}')
 
     # Calculate the number of epochs
-    n_epochs = n_total_time_steps // samples_per_epoch
+    n_epochs = int(n_total_time_steps // samples_per_epoch)
+    print(f'n_epochs {n_epochs}')
 
     # Create new arrays to hold the epoched data and labels
-    data_epoched = np.zeros((n_epochs*n_recordings, n_channels, samples_per_epoch))
-    labels_epoched = np.zeros((n_epochs*n_recordings, 1))
+    data_epoched = np.zeros((int(n_epochs*n_recordings), n_channels, samples_per_epoch))
+    labels_epoched = np.zeros((int(n_epochs*n_recordings), 1))
 
     # Loop over each epoch and extract the corresponding time steps from the data and 
     i = 0
