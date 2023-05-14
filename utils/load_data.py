@@ -87,7 +87,7 @@ def load_kfold_data(data_type, label_type, epoched = False, binary = True):
     # Loads correct labels into y_dict_
     if label_type == 'stai':
         y_dict_ = get_stai_labels(valid_recs) 
-    elif label_type == 'pss':
+    elif label_type == 'ss':
         y_dict_ = get_ss_labels(valid_recs)
     else:
         print('No such label type in data set')
