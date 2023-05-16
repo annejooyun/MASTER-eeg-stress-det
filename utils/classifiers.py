@@ -11,11 +11,12 @@ from sklearn import metrics
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.model_selection import StratifiedKFold
-from sklearn.metrics import classification_report
 
 import plotly.graph_objects as go
 import numpy as np
 import tensorflow as tf
+from tensorflow.keras.callbacks import ModelCheckpoint
+import plotly.subplots as p
 
 
 def knn_classification(train_data, test_data, train_labels, test_labels):
@@ -37,6 +38,7 @@ def knn_classification(train_data, test_data, train_labels, test_labels):
     print(knn_clf.best_estimator_)
     print(knn_clf.best_params_)
     results = knn_clf.cv_results_
+    print(results)
 
     # extract the relevant scores
     leaf_sizes = results['param_leaf_size'].data
@@ -46,7 +48,7 @@ def knn_classification(train_data, test_data, train_labels, test_labels):
     print('Number of results:', len(accuracies))
     #print('n_neighbors:', n_neighbors)
     #print('leaf_sizes:', leaf_sizes)
-    print('accuracies:', accuracies)
+    print('overall accuracy:', np.round(np.sum(accuracies)/len(accuracies)*100,2))
     # plot the results
     plt.figure(1)
     plt.plot(
@@ -83,6 +85,7 @@ def svm_classification(train_data, test_data, train_labels, test_labels):
 
     # fit the grid search to get the results
     results = svm_clf.cv_results_
+    print(results)
     
     # extract the relevant scores
     C_values = results['param_C'].data
@@ -92,7 +95,7 @@ def svm_classification(train_data, test_data, train_labels, test_labels):
     print('Number of results:', len(accuracies))
     #print('C_values:', C_values)
     #print('kernel_values:', kernel_values)
-    print('accuracies:', accuracies)
+    print('overall accuracy:', np.round(np.sum(accuracies)/len(accuracies)*100,2))
     # plot the results
     plt.figure(2)
     plt.plot(
@@ -241,18 +244,16 @@ def EEGNet_classification(train_data, test_data, val_data, train_labels, test_la
 
     probs       = model.predict(test_data)
     preds       = probs.argmax(axis = -1)  
-    acc         = np.mean(preds == test_labels)
-    print("Classification accuracy: %f " % (acc))
 
     # print performance
-    performance = compute_metrics(test_labels, preds)
+    performance = p.compute_metrics(test_labels, preds)
     print("Accuracy, Sensitivity, Specificyty:\n")
     print(performance)
 
     
     # Plot Loss/Accuracy over time
     # Create figure with secondary y-axis
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    fig = p.make_subplots(specs=[[{"secondary_y": True}]])
     # Add traces
     fig.add_trace(go.Scatter( y=history.history['val_loss'], name="val_loss"), secondary_y=False)
     fig.add_trace(go.Scatter( y=history.history['loss'], name="loss"), secondary_y=False)
@@ -320,17 +321,14 @@ def kfold_EEGNet_classification(train_data, test_data, train_labels, test_labels
         model.load_weights('/tmp/checkpoint.h5')
 
         probs       = model.predict(test_data)
-        preds       = probs.argmax(axis = -1)  
-        acc         = np.mean(preds == test_labels)
-        total_accuracy += acc
-        print("Classification accuracy: %f " % (acc))
+        preds       = probs.argmax(axis = -1)
 
         conf_matrix = metrics.confusion_matrix(test_labels, preds)
         m.plot_conf_matrix_and_stats(conf_matrix)
         
         # Plot Loss/Accuracy over time
         # Create figure with secondary y-axis
-        fig = make_subplots(specs=[[{"secondary_y": True}]])
+        fig = p.make_subplots(specs=[[{"secondary_y": True}]])
         # Add traces
         fig.add_trace(go.Scatter( y=history.history['val_loss'], name="val_loss"), secondary_y=False)
         fig.add_trace(go.Scatter( y=history.history['loss'], name="loss"), secondary_y=False)
@@ -344,10 +342,6 @@ def kfold_EEGNet_classification(train_data, test_data, train_labels, test_labels
         fig.update_yaxes(title_text="Loss", secondary_y=False)
         fig.update_yaxes(title_text="Accuracy", secondary_y=True)
         fig.show()
-    
-    classification_acc = total_accuracy/n_folds
-    print(f"EEGNet overall classification accuracy: {classification_acc}")
-
 
 def TSGL_classification(train_data, test_data, val_data, train_labels, test_labels, val_labels, data_type, epoched = True):
 
@@ -390,18 +384,16 @@ def TSGL_classification(train_data, test_data, val_data, train_labels, test_labe
     # make prediction on test set.
     probs       = model.predict(test_data)
     preds       = probs.argmax(axis = -1)  
-    acc         = np.mean(preds == test_labels)
-    print("Classification accuracy: %f " % (acc))
 
     # print performance
-    performance = compute_metrics(test_labels, preds)
-    print("Accuracy, Sensitivity, Specificyty:\n")
+    performance = p.compute_metrics(test_labels, preds)
+    print("Accuracy, Sensitivity, Specificity:\n")
     print(performance)
 
     
     # Plot Loss/Accuracy over time
     # Create figure with secondary y-axis
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    fig = p.make_subplots(specs=[[{"secondary_y": True}]])
     # Add traces
     fig.add_trace(go.Scatter( y=history.history['val_loss'], name="val_loss"), secondary_y=False)
     fig.add_trace(go.Scatter( y=history.history['loss'], name="loss"), secondary_y=False)
@@ -453,7 +445,6 @@ def kfold_TSGL_classification(train_data, test_data, train_labels, test_labels, 
 
      # Split into k-folds
     skf = StratifiedKFold(n_splits=n_folds)
-    total_accuracy = 0
 
     for fold, (train_index, val_index) in enumerate(skf.split(train_data, train_labels)):
         print(f"\nFold nr: {fold+1}")
@@ -469,16 +460,13 @@ def kfold_TSGL_classification(train_data, test_data, train_labels, test_labels, 
 
         probs       = model.predict(test_data)
         preds       = probs.argmax(axis = -1)  
-        acc         = np.mean(preds == test_labels)
-        total_accuracy += acc
-        print("Classification accuracy: %f " % (acc))
 
         conf_matrix = metrics.confusion_matrix(test_labels, preds)
         m.plot_conf_matrix_and_stats(conf_matrix)
         
         # Plot Loss/Accuracy over time
         # Create figure with secondary y-axis
-        fig = make_subplots(specs=[[{"secondary_y": True}]])
+        fig = p.make_subplots(specs=[[{"secondary_y": True}]])
         # Add traces
         fig.add_trace(go.Scatter( y=history.history['val_loss'], name="val_loss"), secondary_y=False)
         fig.add_trace(go.Scatter( y=history.history['loss'], name="loss"), secondary_y=False)
@@ -492,9 +480,6 @@ def kfold_TSGL_classification(train_data, test_data, train_labels, test_labels, 
         fig.update_yaxes(title_text="Loss", secondary_y=False)
         fig.update_yaxes(title_text="Accuracy", secondary_y=True)
         fig.show()
-    
-    classification_acc = total_accuracy/n_folds
-    print(f"TSGL overall classification accuracy: {classification_acc}")
 
 
 def DeepConvNet_classification(train_data, test_data, val_data, train_labels, test_labels, val_labels, data_type, epoched = True):
@@ -537,12 +522,10 @@ def DeepConvNet_classification(train_data, test_data, val_data, train_labels, te
     # make prediction on test set.
     probs       = model.predict(test_data)
     preds       = probs.argmax(axis = -1)  
-    acc         = np.mean(preds == test_labels)
-    print("Classification accuracy: %f " % (acc))
 
     # Plot Loss/Accuracy over time
     # Create figure with secondary y-axis
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    fig = p.make_subplots(specs=[[{"secondary_y": True}]])
     # Add traces
     fig.add_trace(go.Scatter( y=history.history['val_loss'], name="val_loss"), secondary_y=False)
     fig.add_trace(go.Scatter( y=history.history['loss'], name="loss"), secondary_y=False)
@@ -593,7 +576,6 @@ def kfold_DeepConvNet_classification(train_data, test_data, train_labels, test_l
 
      # Split into k-folds
     skf = StratifiedKFold(n_splits=n_folds)
-    total_accuracy = 0
 
     for fold, (train_index, val_index) in enumerate(skf.split(train_data, train_labels)):
         print(f"\nFold nr: {fold+1}")
@@ -609,16 +591,13 @@ def kfold_DeepConvNet_classification(train_data, test_data, train_labels, test_l
 
         probs       = model.predict(test_data)
         preds       = probs.argmax(axis = -1)  
-        acc         = np.mean(preds == test_labels)
-        total_accuracy += acc
-        print("Classification accuracy: %f " % (acc))
-
+  
         conf_matrix = metrics.confusion_matrix(test_labels, preds)
         m.plot_conf_matrix_and_stats(conf_matrix)
         
         # Plot Loss/Accuracy over time
         # Create figure with secondary y-axis
-        fig = make_subplots(specs=[[{"secondary_y": True}]])
+        fig = p.make_subplots(specs=[[{"secondary_y": True}]])
         # Add traces
         fig.add_trace(go.Scatter( y=history.history['val_loss'], name="val_loss"), secondary_y=False)
         fig.add_trace(go.Scatter( y=history.history['loss'], name="loss"), secondary_y=False)
@@ -632,9 +611,6 @@ def kfold_DeepConvNet_classification(train_data, test_data, train_labels, test_l
         fig.update_yaxes(title_text="Loss", secondary_y=False)
         fig.update_yaxes(title_text="Accuracy", secondary_y=True)
         fig.show()
-    
-    classification_acc = total_accuracy/n_folds
-    print(f"Deep overall classification accuracy: {classification_acc}")
 
 
 def ShallowConvNet_classification(train_data, test_data, val_data, train_labels, test_labels, val_labels, data_type, epoched = True):
@@ -678,13 +654,11 @@ def ShallowConvNet_classification(train_data, test_data, val_data, train_labels,
     # make prediction on test set.
     probs       = model.predict(test_data)
     preds       = probs.argmax(axis = -1)  
-    acc         = np.mean(preds == test_labels)
-    print("Classification accuracy: %f " % (acc))
 
     
     # Plot Loss/Accuracy over time
     # Create figure with secondary y-axis
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    fig = p.make_subplots(specs=[[{"secondary_y": True}]])
     # Add traces
     fig.add_trace(go.Scatter( y=history.history['val_loss'], name="val_loss"), secondary_y=False)
     fig.add_trace(go.Scatter( y=history.history['loss'], name="loss"), secondary_y=False)
@@ -736,8 +710,6 @@ def kfold_ShallowConvNet_classification(train_data, test_data, train_labels, tes
 
      # Split into k-folds
     skf = StratifiedKFold(n_splits=n_folds)
-    total_accuracy = 0
-
     for fold, (train_index, val_index) in enumerate(skf.split(train_data, train_labels)):
         print(f"\nFold nr: {fold+1}")
         train_data_fold, train_labels_fold = train_data[train_index], train_labels[train_index]
@@ -752,16 +724,13 @@ def kfold_ShallowConvNet_classification(train_data, test_data, train_labels, tes
 
         probs       = model.predict(test_data)
         preds       = probs.argmax(axis = -1)  
-        acc         = np.mean(preds == test_labels)
-        total_accuracy += acc
-        print("Classification accuracy: %f " % (acc))
 
         conf_matrix = metrics.confusion_matrix(test_labels, preds)
         m.plot_conf_matrix_and_stats(conf_matrix)
         
         # Plot Loss/Accuracy over time
         # Create figure with secondary y-axis
-        fig = make_subplots(specs=[[{"secondary_y": True}]])
+        fig = p.make_subplots(specs=[[{"secondary_y": True}]])
         # Add traces
         fig.add_trace(go.Scatter( y=history.history['val_loss'], name="val_loss"), secondary_y=False)
         fig.add_trace(go.Scatter( y=history.history['loss'], name="loss"), secondary_y=False)
@@ -776,5 +745,3 @@ def kfold_ShallowConvNet_classification(train_data, test_data, train_labels, tes
         fig.update_yaxes(title_text="Accuracy", secondary_y=True)
         fig.show()
     
-    classification_acc = total_accuracy/n_folds
-    print(f"Shallow overall classification accuracy: {classification_acc}")

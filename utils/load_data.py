@@ -87,7 +87,7 @@ def load_kfold_data(data_type, label_type, epoched = False, binary = True):
     # Loads correct labels into y_dict_
     if label_type == 'stai':
         y_dict_ = get_stai_labels(valid_recs) 
-    elif label_type == 'pss':
+    elif label_type == 'ss':
         y_dict_ = get_ss_labels(valid_recs)
     else:
         print('No such label type in data set')
@@ -135,7 +135,7 @@ def load_psd_data(label_type, binary = True):
     data_type = 'psd'
     # Loads valid recording into valid_recs
     valid_recs = get_valid_recs(data_type=data_type, output_type = 'np')
-    #print(f'Valid recs: \n {valid_recs}')
+    print(f'Valid recs: \n {valid_recs}')
 
     # Loads EEG data into x_dict_
     x_dict_ = extract_psd_data(valid_recs)
@@ -236,7 +236,7 @@ def load_and_shape_data(data_type, label_type, feature_type, kfold, new_ica = Fa
         
 
 def load_and_shape_psd_data(label_type):
-    train_data, test_data, train_labels, test_labels = ld.load_psd_data(label_type, binary = True)
+    train_data, test_data, train_labels, test_labels = load_psd_data(label_type, binary = True)
     train_data = np.reshape(train_data, (train_data.shape[0]*train_data.shape[1], train_data.shape[2]))
     train_labels = np.repeat(train_labels, repeats = 8, axis = 1).reshape(-1,1)
     train_labels = train_labels.ravel()
