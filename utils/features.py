@@ -73,7 +73,6 @@ def time_series_features(data, new_ica, SAM40 = False):
     else:
         sfreq = v.SFREQ
     print('SFREQ: ', sfreq)
-    print("HKKJASHKSHKAVVVVVVVVV: ", data.shape)
     if SAM40 and data.shape[2]==38400:
         data = np.reshape(data, (data.shape[0]*12,8,3200))
     n_recordings = data.shape[0]
