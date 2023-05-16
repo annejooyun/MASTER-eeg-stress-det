@@ -15,7 +15,9 @@ disable_eager_execution()
 
 from kymatio.numpy import Scattering1D, Scattering2D
 
-def kymatio_wave_scattering(data):
+import matplotlib.pyplot as plt
+
+def kymatio_wave_scattering(data, new_ica):
     first_key = next(iter(data[0]))
     n_channels, _ = data[0][first_key].shape
     T_ = data[0][first_key].shape[-1]
@@ -71,12 +73,15 @@ def time_series_features(data, new_ica, SAM40 = False):
     else:
         sfreq = v.SFREQ
     print('SFREQ: ', sfreq)
+    print("HKKJASHKSHKAVVVVVVVVV: ", data.shape)
+    if SAM40 and data.shape[2]==38400:
+        data = np.reshape(data, (data.shape[0]*12,8,3200))
     n_recordings = data.shape[0]
     n_samples = data.shape[2]
     n_samples_per_epoch = int(sfreq*v.EPOCH_LENGTH) #n_seconds = 25 250
-    print(n_samples_per_epoch)
+    print("n_samples_per_epoch: ", n_samples_per_epoch)
     n_epochs = int(n_samples/n_samples_per_epoch)
-    print(n_epochs)
+    print("n_epochs: ", n_epochs)
     
     ptp_amp = np.zeros((n_recordings, v.NUM_CHANNELS, n_epochs))
     variance = np.zeros((n_recordings, v.NUM_CHANNELS, n_epochs))

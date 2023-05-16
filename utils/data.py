@@ -26,6 +26,7 @@ def read_eeg_data(data_type, filename, output_type):
 
     #Removes data recorded after 5 minutes
     data = data[:,:75000] # 5 MIN * 60 SEK/MIN * 250 SAMPLES/SEK = 75 000 SAMPLES
+    #data = data[:,:3200] # 25 SEK/MIN * 128 SAMPLES/SEK = 3200 SAMPLES
 
     #Checks output type and returns correct data
     if output_type == 'np':
@@ -335,6 +336,8 @@ def dict_to_arr(data_dict, data_type):
         data_arr = np.empty((len(keys_list), v.NUM_CHANNELS, v.NEW_NUM_SAMPLES))
     elif data_type == '128Hz_raw':
         data_arr = np.empty((len(keys_list), v.NUM_CHANNELS, 5*60*128))
+    #elif data_type == '128Hz_raw':
+    #    data_arr = np.empty((len(keys_list), v.NUM_CHANNELS, 25*128))
     elif data_type == 'psd':
         data_arr = np.empty((len(keys_list), v.NUM_CHANNELS, v.NUM_PSD_FREQS))
     i = 0
@@ -349,7 +352,7 @@ def dict_to_arr(data_dict, data_type):
 def epoch_data_and_labels(data, labels , sfreq = 128):
     
     # Calculate the number of samples per epoch
-    samples_per_epoch = v.EPOCH_LENGTH * sfreq
+    samples_per_epoch = int(v.EPOCH_LENGTH * sfreq)
 
     # Get the shape of the data
     n_recordings, n_channels, n_total_time_steps = data.shape
