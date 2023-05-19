@@ -228,8 +228,8 @@ def load_and_shape_data(data_type, label_type, feature_type, kfold, new_ica = Fa
         
         #Extract features
         #time_series_features, fractal_features, entropy_features, hjorth_features, freq_band_features, kymatio_wave_scattering
-        train_data = feature_type(train_data, new_ica, SAM40)
-        test_data = feature_type(test_data, new_ica, SAM40)
+        train_data = feature_type(train_data)
+        test_data = feature_type(test_data)
 
         return train_data, test_data, train_labels, test_labels
     

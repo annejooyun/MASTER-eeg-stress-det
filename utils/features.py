@@ -102,7 +102,7 @@ def time_series_features(data, new_ica, SAM40 = False):
     print(f'Features shape: {features.shape}')
     return features
 
-def fractal_features(data, new_ica):
+def fractal_features(data, new_ica=False):
     '''
     Compute the Higuchi Fractal Dimension and Katz Fractal Dimension using the package mne_features.
     The data should be on the form (n_trials, n_secs, n_channels, sfreq)
