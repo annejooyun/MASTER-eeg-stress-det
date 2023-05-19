@@ -207,17 +207,17 @@ def load_and_shape_data(data_type, label_type, feature_type, kfold, new_ica = Fa
     else:
         if SAM40:
             #Reshape labels to fit (n_recordings*n_channels, 1)
-            train_labels = np.repeat(train_labels, repeats = v.NUM_CHANNELS*12, axis = 0).reshape((train_data.shape[0]*v.NUM_CHANNELS*12,1))
-            train_labels = train_labels.ravel()
-
-            test_labels = np.repeat(test_labels,repeats = v.NUM_CHANNELS*12, axis = 0).reshape((test_data.shape[0]*v.NUM_CHANNELS*12,1))
-            test_labels = test_labels.ravel()
-
-            #train_labels = np.repeat(train_labels, repeats = v.NUM_CHANNELS, axis = 0).reshape((train_data.shape[0]*v.NUM_CHANNELS,1))
+            #train_labels = np.repeat(train_labels, repeats = v.NUM_CHANNELS*12, axis = 0).reshape((train_data.shape[0]*v.NUM_CHANNELS*12,1))
             #train_labels = train_labels.ravel()
 
-            #test_labels = np.repeat(test_labels,repeats = v.NUM_CHANNELS, axis = 0).reshape((test_data.shape[0]*v.NUM_CHANNELS,1))
+            #test_labels = np.repeat(test_labels,repeats = v.NUM_CHANNELS*12, axis = 0).reshape((test_data.shape[0]*v.NUM_CHANNELS*12,1))
             #test_labels = test_labels.ravel()
+
+            train_labels = np.repeat(train_labels, repeats = v.NUM_CHANNELS, axis = 0).reshape((train_data.shape[0]*v.NUM_CHANNELS,1))
+            train_labels = train_labels.ravel()
+
+            test_labels = np.repeat(test_labels,repeats = v.NUM_CHANNELS, axis = 0).reshape((test_data.shape[0]*v.NUM_CHANNELS,1))
+            test_labels = test_labels.ravel()
         else:
             #Reshape labels to fit (n_recordings*n_channels, 1)
             train_labels = np.repeat(train_labels, repeats = v.NUM_CHANNELS, axis = 0).reshape((train_data.shape[0]*v.NUM_CHANNELS,1))
@@ -228,8 +228,8 @@ def load_and_shape_data(data_type, label_type, feature_type, kfold, new_ica = Fa
         
         #Extract features
         #time_series_features, fractal_features, entropy_features, hjorth_features, freq_band_features, kymatio_wave_scattering
-        train_data = feature_type(train_data, new_ica, SAM40)
-        test_data = feature_type(test_data, new_ica, SAM40)
+        train_data = feature_type(train_data, new_ica)
+        test_data = feature_type(test_data, new_ica)
 
         return train_data, test_data, train_labels, test_labels
     
@@ -264,7 +264,7 @@ def load_and_shape_SAM40_data(feature=None):
         test_data_SAM40 = np.reshape(selected_channels_dataset, (selected_channels_dataset.shape[0]*selected_channels_dataset.shape[1], selected_channels_dataset.shape[2]))
     else:    
         #Compute time_series_features for SAM40
-        test_data_SAM40 = f.time_series_features(selected_channels_dataset, new_ica=False, SAM40=True)
+        test_data_SAM40 = feature(selected_channels_dataset, new_ica=False, SAM40=True)
 
     #Load SAM40 labels 
     labels_ = ld_SAM40.load_labels()

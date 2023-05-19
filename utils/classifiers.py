@@ -167,6 +167,57 @@ def svm_classification_SAM40(train_data, test_data, SAM40_data, train_labels, te
     conf_matrix_SAM40 = metrics.confusion_matrix(y_true_SAM40, y_pred_SAM40)
     m.plot_conf_matrix_and_stats(conf_matrix_SAM40)
 
+def knn_classification_SAM40(train_data, test_data, SAM40_data, train_labels, test_labels, SAM40_labels):
+    
+    param_grid = {
+        'leaf_size': range(1, 10),
+        'n_neighbors': range(1, 5),
+        'p': [1, 2]
+    }
+    scaler = StandardScaler()
+    train_data = scaler.fit_transform(train_data)
+    test_data = scaler.transform(test_data)
+
+    knn_clf = GridSearchCV(KNeighborsClassifier(), param_grid, refit=True, n_jobs=-1, cv = 10)
+    knn_clf.fit(train_data, train_labels)
+
+    y_pred = knn_clf.predict(test_data)
+    y_true = test_labels
+
+    print(knn_clf.best_estimator_)
+    print(knn_clf.best_params_)
+    results = knn_clf.cv_results_
+    print(results)
+
+    # extract the relevant scores
+    leaf_sizes = results['param_leaf_size'].data
+    n_neighbors = results['param_n_neighbors'].data
+    accuracies = results['mean_test_score']
+
+    print('Number of results:', len(accuracies))
+    #print('n_neighbors:', n_neighbors)
+    #print('leaf_sizes:', leaf_sizes)
+    print('overall accuracy:', np.round(np.sum(accuracies)/len(accuracies)*100,2))
+    # plot the results
+    plt.figure(1)
+    plt.plot(
+        range(len(accuracies)),
+        accuracies,
+    )
+    plt.xlabel('Iteration')
+    plt.ylabel('Accuracy')
+    plt.show()
+
+    conf_matrix = metrics.confusion_matrix(y_true, y_pred)
+    m.plot_conf_matrix_and_stats(conf_matrix)
+
+    #SAM40
+    print('Predicting on SAM40 data')
+    y_pred_SAM40 = knn_clf.predict(SAM40_data)
+    y_true_SAM40 = SAM40_labels
+    conf_matrix_SAM40 = metrics.confusion_matrix(y_true_SAM40, y_pred_SAM40)
+    m.plot_conf_matrix_and_stats(conf_matrix_SAM40)
+
 
 def EEGNet_classification(train_data, test_data, val_data, train_labels, test_labels, val_labels, data_type, epoched = True):
 

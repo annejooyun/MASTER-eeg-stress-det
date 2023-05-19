@@ -17,15 +17,29 @@ from kymatio.numpy import Scattering1D, Scattering2D
 
 import matplotlib.pyplot as plt
 
+def kymatio_test(data, new_ica):
+    data = np.reshape(data, (data.shape[0]*data.shape[1], data.shape[2]))
+    T = data.shape[-1]
+    print('T: ', T)
+    J = 10
+    Q = 4
+    S = Scattering1D(J,T,Q)
+    x = data
+    x = x / np.max(np.abs(x))
+    Sx = S(x)
+    print("Sx shaep: ", Sx.shape)
+    features = Sx
+    return features
+
 def kymatio_wave_scattering(data, new_ica):
-    first_key = next(iter(data[0]))
-    n_channels, _ = data[0][first_key].shape
-    T_ = data[0][first_key].shape[-1]
+    print("data shape: ", data.shape)
+    n_channels = data.shape[1]
+    T_ = data.shape[-1]
     #print('T_: ', T_)
     J = 6
     Q = 16
     S = Scattering1D(J,T_,Q)
-    x_ = data[0][first_key][0]
+    x_ = data
     x_ = x_ / np.max(np.abs(x_))
     Sx_ = S(x_)
     #print('Sx_ shape: ', Sx_.shape)
@@ -115,7 +129,7 @@ def fractal_features(data, new_ica):
     
     n_recordings = data.shape[0]
     n_samples = data.shape[2]
-    n_samples_per_epoch = int(n_samples/sfreq)
+    n_samples_per_epoch = int(sfreq*v.EPOCH_LENGTH)
     n_epochs = int(n_samples/n_samples_per_epoch)
     
     higuchi = np.zeros((n_recordings, v.NUM_CHANNELS, n_epochs))
@@ -147,7 +161,7 @@ def entropy_features(data, new_ica):
     
     n_recordings = data.shape[0]
     n_samples = data.shape[2]
-    n_samples_per_epoch = int(n_samples/sfreq)
+    n_samples_per_epoch = int(sfreq*v.EPOCH_LENGTH)
     n_epochs = int(n_samples/n_samples_per_epoch)
     
     app_entropy = np.zeros((n_recordings, v.NUM_CHANNELS, n_epochs))
@@ -171,22 +185,26 @@ def entropy_features(data, new_ica):
     features = features.reshape((-1, n_epochs*4))
     return features
 
-def hjorth_features(data, new_ica):
+def hjorth_features(data, new_ica, SAM40=False):
     '''
     Compute the features Hjorth mobility (spectral) and Hjorth complexity (spectral) using the package mne_features.
     The data should be on the form (n_trials, n_secs, n_channels, sfreq)
     The output is on the form (n_trials*n_secs, n_channels*2)
     '''
-
-    if new_ica:
+    if SAM40:
+        sfreq = v_SAM40.SFREQ
+    elif new_ica:
         sfreq = v.NEW_SFREQ
     else:
         sfreq = v.SFREQ
     
+    if SAM40 and data.shape[2]==38400:
+        data = np.reshape(data, (data.shape[0]*12,8,3200))
     n_recordings = data.shape[0]
     n_samples = data.shape[2]
-    n_samples_per_epoch = int(n_samples/sfreq)
+    n_samples_per_epoch = int(sfreq*v.EPOCH_LENGTH)
     n_epochs = int(n_samples/n_samples_per_epoch)
+    
     
     mobility_spect = np.zeros((n_recordings, v.NUM_CHANNELS, n_epochs))
     complexity_spect = np.zeros((n_recordings, v.NUM_CHANNELS, n_epochs))
@@ -219,7 +237,7 @@ def freq_band_features(data, new_ica, freq_bands = np.array([1, 4, 8, 12, 30, 50
     
     n_recordings = data.shape[0]
     n_samples = data.shape[2]
-    n_samples_per_epoch = int(n_samples/sfreq)
+    n_samples_per_epoch = int(sfreq*v.EPOCH_LENGTH)
     n_epochs = int(n_samples/n_samples_per_epoch)
     
     psd = np.zeros((n_recordings, v.NUM_CHANNELS*(len(freq_bands)-1), n_epochs))

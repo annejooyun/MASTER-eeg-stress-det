@@ -334,10 +334,10 @@ def dict_to_arr(data_dict, data_type):
         data_arr = np.empty((len(keys_list), v.NUM_CHANNELS, v.NUM_SAMPLES))
     elif data_type == 'new_ica':
         data_arr = np.empty((len(keys_list), v.NUM_CHANNELS, v.NEW_NUM_SAMPLES))
-    elif data_type == '128Hz_raw':
-        data_arr = np.empty((len(keys_list), v.NUM_CHANNELS, 5*60*128))
     #elif data_type == '128Hz_raw':
-    #    data_arr = np.empty((len(keys_list), v.NUM_CHANNELS, 25*128))
+    #    data_arr = np.empty((len(keys_list), v.NUM_CHANNELS, 5*60*128))
+    elif data_type == '128Hz_raw':
+        data_arr = np.empty((len(keys_list), v.NUM_CHANNELS, 25*128))
     elif data_type == 'psd':
         data_arr = np.empty((len(keys_list), v.NUM_CHANNELS, v.NUM_PSD_FREQS))
     i = 0
