@@ -74,7 +74,7 @@ def kymatio_wave_scattering(data, new_ica):
         features.append(features_for_fold)
     return features
 
-def time_series_features(data, new_ica, SAM40 = False):
+def time_series_features(data, new_ica=False, SAM40 = False):
     '''
     Compute the features peak-to-peak amplitude, variance and rms using the package mne_features.
     The data should be on the form (n_recordings, n_channels, n_samples)
@@ -148,7 +148,7 @@ def fractal_features(data, new_ica=False):
     features = features.reshape((-1, n_epochs*2))
     return features
 
-def entropy_features(data, new_ica):
+def entropy_features(data, new_ica=False):
     '''
     Compute the features Approximate Entropy, Sample Entropy, Spectral Entropy and SVD entropy using the package mne_features.
     The data should be on the form (n_trials, n_secs, n_channels, sfreq)
@@ -185,7 +185,7 @@ def entropy_features(data, new_ica):
     features = features.reshape((-1, n_epochs*4))
     return features
 
-def hjorth_features(data, new_ica, SAM40=False):
+def hjorth_features(data, new_ica=False, SAM40=False):
     '''
     Compute the features Hjorth mobility (spectral) and Hjorth complexity (spectral) using the package mne_features.
     The data should be on the form (n_trials, n_secs, n_channels, sfreq)
@@ -224,7 +224,7 @@ def hjorth_features(data, new_ica, SAM40=False):
     features = features.reshape((-1, n_epochs*2))
     return features
 
-def freq_band_features(data, new_ica, freq_bands = np.array([1, 4, 8, 12, 30, 50])):
+def freq_band_features(data, new_ica=False, freq_bands = np.array([1, 4, 8, 12, 30, 50])):
     '''
     Compute the frequency bands delta, theta, alpha, beta and gamma using the package mne_features.
     The data should be on the form (n_trials, n_secs, n_channels, sfreq)
@@ -257,41 +257,3 @@ def freq_band_features(data, new_ica, freq_bands = np.array([1, 4, 8, 12, 30, 50
     features = features.reshape((-1, n_epochs*(len(freq_bands)-1)))
     return features
 
-
-    '''
-    Computes all features included in the package mne_features.
-    Args:
-        data (list of dicts): A list of dictionaries, where each dictionary contains EEG data for multiple trials. The keys in each dictionary represent trial IDs, and the values are numpy arrays of shape (n_channels, n_samples).
-    Returns:
-        list of ndarrays: Computed features.
-    '''
-    
-    first_key = next(iter(data[0]))
-    n_channels, _ = data[0][first_key].shape
-    features_per_channel = 10
-    
-
-    features = []
-    for fold in data:
-        n_trials = len(fold)
-        features_for_fold = np.empty([n_trials, n_channels * features_per_channel])
-        for j, key in enumerate(fold):
-            trial = fold[key]
-            std = mne_f.compute_std(trial)
-            ptp_amp = mne_f.compute_ptp_amp(trial)
-            skewness = mne_f.compute_skewness(trial)
-            kurtosis = mne_f.compute_kurtosis(trial)
-            rms = mne_f.compute_rms(trial)
-            quantile = mne_f.compute_quantile(trial)
-            hurst = mne_f.compute_hurst_exp(trial)
-            app_entropy = mne_f.compute_app_entropy(trial)
-            mobility_spect = mne_f.compute_hjorth_mobility_spect(v.SFREQ, trial)
-            complexity_spect = mne_f.compute_hjorth_complexity_spect(v.SFREQ, trial)
-            mobility = mne_f.compute_hjorth_mobility(trial)
-            complexity = mne_f.compute_hjorth_complexity(trial)
-
-            features_for_fold[j] =  np.concatenate([std, ptp_amp, skewness, kurtosis, rms, quantile, hurst, app_entropy, mobility_spect, complexity_spect, mobility, complexity])
-                        
-        features_for_fold = features_for_fold.reshape([n_trials, n_channels*features_per_channel])
-        features.append(features_for_fold)
-    return features
