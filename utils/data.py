@@ -330,7 +330,7 @@ def dict_to_arr(data_dict, data_type):
     '''
     keys_list = list(data_dict.keys())
     
-    if data_type == 'ica' or data_type == 'raw' or data_type == 'init':
+    if data_type == 'ica' or data_type == 'raw' or data_type == 'init' or data_type == 'new_init':
         data_arr = np.empty((len(keys_list), v.NUM_CHANNELS, v.NUM_SAMPLES))
     elif data_type == 'new_ica':
         data_arr = np.empty((len(keys_list), v.NUM_CHANNELS, v.NEW_NUM_SAMPLES))
